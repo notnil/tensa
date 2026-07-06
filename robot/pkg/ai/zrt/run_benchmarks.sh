@@ -7,8 +7,8 @@ set -e
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TENSA_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-MODEL="${TENSA_DIR}/yolov8n_optimized_tensorrt.onnx"
-SVO="/home/logan/Documents/zed-recordings/HD1080_SN39440864_12-27-57.svo2"
+MODEL="${MODEL:-${TENSA_DIR}/yolov8n_optimized_tensorrt.onnx}"
+SVO="${SVO:-/path/to/recording.svo2}"
 WIDTH=640
 HEIGHT=640
 
@@ -64,5 +64,4 @@ echo ""
 echo "To compare with baseline:"
 echo "  go test -bench=. -benchmem ./pkg/ai/zrt/... > new.txt"
 echo "  benchstat baseline.txt new.txt"
-
 

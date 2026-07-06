@@ -43,8 +43,8 @@ The major lesson was that SDK depth maps worked well for surfaces and people but
 More detail:
 
 - [AI overview](ai/README.md)
-- [Ball tracking methodology](ai/balltracking/logan_scripts/BALL_TRACKING_METHODOLOGY.md)
-- [Localization methodology](ai/balltracking/logan_scripts/LOCALIZATION_METHODOLOGY.md)
+- [Ball tracking methodology](docs/ai/ball-tracking-methodology.md)
+- [Localization methodology](docs/ai/localization-methodology.md)
 - [Architecture notes](docs/architecture.md)
 
 ## Hardware and Firmware

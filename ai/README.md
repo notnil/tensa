@@ -5,8 +5,8 @@ Tensa's AI work centered on making a moving tennis robot understand a real court
 ## Included Work
 
 - `balltracking/`: online ZED SVO inference, stereo matching, 3D triangulation, trajectory tracking, bounce refinement, and Rerun visualization.
-- `balltracking/logan_scripts/BALL_TRACKING_METHODOLOGY.md`: detailed notes on stereo triangulation, filtering, tracking, and physics-informed refinement.
-- `balltracking/logan_scripts/LOCALIZATION_METHODOLOGY.md`: notes on machine localization with camera/court geometry.
+- `../docs/ai/ball-tracking-methodology.md`: detailed notes on stereo triangulation, filtering, tracking, and physics-informed refinement.
+- `../docs/ai/localization-methodology.md`: notes on machine localization with camera/court geometry.
 - `training/`: training/evaluation code skeletons for ball detection and court keypoint detection, with heavyweight weights and private datasets removed.
 
 ## Model Assets

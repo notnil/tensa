@@ -266,12 +266,12 @@ go test -v ./pkg/ai/zrt/... -args -demo \
     -width 640 -height 640
 ```
 
-**Example with actual paths:**
+**Example with local paths:**
 
 ```bash
 go test -v ./pkg/ai/zrt/... -args -demo \
-    -model /home/logan/Documents/tensa/yolov8n_optimized_tensorrt.onnx \
-    -svo /home/logan/Documents/zed-recordings/HD1080_SN39440864_12-27-57.svo2 \
+    -model /path/to/yolov8n_optimized_tensorrt.onnx \
+    -svo /path/to/recording.svo2 \
     -width 640 -height 640
 ```
 
