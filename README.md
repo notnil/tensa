@@ -8,13 +8,37 @@ Tensa is an autonomous tennis robot that moves around the court on a mecanum dri
 
 This repo is a curated engineering snapshot of the AI, robot-control, firmware, and hardware work.
 
-## Scope
+## What It Does
 
-The code is useful for understanding the architecture and implementation direction, but reproducing the full robot requires hardware, model weights, calibration data, and ZED recordings that are intentionally not included.
+Tensa combines perception, localization, motion, and ball delivery into one court-aware robot:
+
+- Sees the court through multiple ZED stereo cameras.
+- Estimates robot pose in a tennis-court coordinate frame.
+- Detects tennis balls in stereo image pairs, triangulates 3D position, and tracks flight paths through bounces.
+- Tracks players and court context for drill logic and targeting.
+- Moves holonomically with a mecanum drive base.
+- Controls a dual-wheel thrower, angle axis, dispenser, and load sensor through ClearCore firmware.
+
+## System Overview
+
+```text
+ZED cameras + court geometry
+        |
+        v
+Perception and localization
+        |
+        v
+Robot runtime and drill logic
+        |
+        v
+Mecanum drive + ClearCore thrower firmware
+```
+
+The code is useful for understanding the architecture and implementation direction. Reproducing the full robot requires hardware, model weights, calibration data, and ZED recordings that are intentionally not included.
 
 ## Highlights
 
-- Real-time-ish stereo ball tracking from ZED cameras using a custom 2D-to-3D triangulation path instead of noisy SDK depth-map lookups.
+- Real-time stereo ball tracking from ZED cameras using a custom 2D-to-3D triangulation path instead of noisy SDK depth-map lookups.
 - YOLO/SAM-assisted tennis ball detection, with TensorRT export support for Jetson-class inference.
 - Multi-camera court localization and robot pose estimation from known court geometry.
 - Physics-aware ball trajectory tracking with Kalman filtering, gravity, bounces, and offline/online refinement.
@@ -24,23 +48,22 @@ The code is useful for understanding the architecture and implementation directi
 
 ## Repository Map
 
-```text
-.
-├── ai/             # Ball tracking, localization, and training code
-├── assets/         # Selected AI and hardware visuals from project Slack
-├── firmware/       # ClearCore throw-system firmware and motor configs
-├── hardware/       # Hardware notes and visual references
-├── robot/          # Go robot-control stack
-└── docs/           # Architecture and project notes
-```
+| Path | What is there |
+|------|---------------|
+| `ai/` | Python ball tracking, localization, and training/evaluation code. |
+| `robot/` | Go runtime for hardware control, drill logic, telemetry, camera interfaces, and court geometry helpers. |
+| `firmware/` | ClearCore firmware and motor parameter/configuration snapshots for the throw system. |
+| `hardware/` | Hardware notes and visual references for the mobile robot, drive base, thrower, and camera packaging. |
+| `docs/` | Architecture, ball-tracking, localization, and hardware methodology notes. |
+| `assets/` | Selected AI, localization, and hardware visuals. |
 
 ## Suggested Reading Path
 
-- Start with [Architecture notes](docs/architecture.md) for the system split.
-- Read [Ball tracking methodology](docs/ai/ball-tracking-methodology.md) for the stereo geometry and physics tracker.
-- Read [Localization methodology](docs/ai/localization-methodology.md) for court-frame pose estimation.
-- Browse [Robot control](robot/README.md) for the Go runtime and hardware boundaries.
-- Browse [Firmware](firmware/README.md) and [Hardware notes](docs/hardware.md) for the thrower, drive base, and packaging work.
+1. Start with the [documentation index](docs/README.md) and [Architecture notes](docs/architecture.md) for the system split.
+2. Read [Ball tracking methodology](docs/ai/ball-tracking-methodology.md) for stereo geometry and the physics tracker.
+3. Read [Localization methodology](docs/ai/localization-methodology.md) for court-frame pose estimation.
+4. Browse [Robot control](robot/README.md) for the Go runtime and hardware boundaries.
+5. Browse [Firmware](firmware/README.md) and [Hardware notes](docs/hardware.md) for the thrower, drive base, and packaging work.
 
 ## AI System
 
@@ -82,6 +105,8 @@ More detail:
 
 ## Running Checks
 
+The default checks are designed to run on a normal development machine without robot hardware:
+
 ```bash
 make test-go
 make test-python
@@ -98,12 +123,20 @@ make test-go-native   # includes native packages such as ZED/ONNX runtime
 make test-go-hardware # includes CAN, BLE, speaker, and robot bench tests
 ```
 
-## What Is Not Included
+## Included and Omitted Assets
 
-- Private datasets, GCS buckets, SVO recordings, and training runs.
-- Large model checkpoints and TensorRT engines.
-- Private Slack links, customer/team contact details, and deployment credentials.
-- Historical branches and one-off experiments that did not represent the final direction.
+Included:
+
+- Core Go robot-control code.
+- Python ball-tracking, localization, and training/evaluation scaffolding.
+- ClearCore thrower firmware and motor configuration snapshots.
+- Representative AI, localization, hardware, and firmware visuals.
+
+Not included:
+
+- Raw datasets, SVO recordings, training runs, and cloud buckets.
+- Large model checkpoints, TensorRT engines, and private calibration datasets.
+- Deployment credentials, machine-specific configs, and internal service details.
 
 ## License
 

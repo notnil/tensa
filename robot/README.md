@@ -2,6 +2,10 @@
 
 This directory contains the Go control stack that ran on the Jetson-class robot computer.
 
+The runtime is the integration layer between perception, court geometry, control
+inputs, movement, and the thrower. It favors small interfaces around hardware so
+packages can be tested with mocks when a robot is not attached.
+
 ## What Is Here
 
 - `cmd/tensactl`: the main robot control process.
@@ -11,6 +15,15 @@ This directory contains the Go control stack that ran on the Jetson-class robot 
 - `pkg/pubsubx` and `pkg/metrics`: lightweight stream plumbing used between perception, control, and UI layers.
 
 The production deployment files from the original private repo were intentionally omitted or replaced. They contained machine-specific network settings, internal registry paths, and developer workstation assumptions that are not useful in a public engineering repo.
+
+## Runtime Responsibilities
+
+- Subscribe to perception and controller events.
+- Maintain court-aware robot state.
+- Execute drill definitions and target selection.
+- Send drive commands to mecanum wheel implementations.
+- Send throw commands to the ClearCore thrower client.
+- Expose light debug surfaces such as snapshots and streams.
 
 ## Build
 

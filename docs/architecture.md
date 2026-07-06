@@ -1,6 +1,22 @@
 # Architecture Notes
 
-Tensa split naturally into four layers.
+Tensa split naturally into four layers: perception, localization, robot runtime,
+and low-level motion/firmware. The important design choice was to keep court
+understanding in a stable coordinate frame so perception, movement, and throw
+targeting could share the same geometry.
+
+```text
+Camera frames -> Court-space perception -> Drill/runtime decisions -> Hardware commands
+```
+
+## Data Flow
+
+1. ZED cameras capture synchronized stereo views.
+2. Perception code detects balls, players, and court features.
+3. Stereo geometry converts detections into 3D machine-frame points.
+4. Localization transforms machine-frame observations into court coordinates.
+5. The Go runtime consumes court-space state and emits movement or thrower commands.
+6. Firmware and motor drivers execute low-level motion with safety and fault handling.
 
 ## 1. Perception
 
@@ -26,6 +42,10 @@ Localization work included:
 - labeler workflows for ground-truth machine pose,
 - multi-camera consistency checks,
 - robot-relative to court-space transforms for player and ball positions.
+
+This layer is what made the rest of the robot court-aware. Once detections were
+in court coordinates, movement, drill definitions, and throw targeting could use
+the same units and reference frame.
 
 ## 3. Robot Runtime
 
@@ -53,3 +73,11 @@ The ClearCore firmware owned the throw mechanism:
 - motor fault handling.
 
 The Go runtime talks to this firmware through the line-oriented protocol documented in `robot/pkg/hware/thrower/protocol.md`.
+
+## Public Build Boundary
+
+The default public build uses stubs or portable tests for hardware-dependent
+packages. Hardware-specific paths are still preserved where they explain the
+actual robot design, but CAN, BLE, speaker, ZED SDK, CUDA, and ONNX Runtime
+checks are opt-in through the Makefile targets documented in the top-level
+README.

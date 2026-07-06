@@ -2,6 +2,12 @@
 
 This document describes the approach for determining machine position on a tennis court using stereo depth and known court geometry.
 
+## Goal
+
+The localization system turns camera observations into a court pose: machine X,
+machine Y, and machine yaw. That pose lets the robot share one coordinate frame
+across ball tracking, player tracking, movement, and throw targeting.
+
 ## 1. Machine Localization
 
 The localization system determines the machine's position (X, Y) and orientation (Yaw) in the court coordinate system.
@@ -93,6 +99,9 @@ Given N≥2 correspondences between clicked image points and known court keypoin
 3.  **Least-Squares Optimization**: Solve for the optimal yaw angle and X/Y translation that minimizes the error between:
     *   The transformed machine-frame vectors projected into court space
     *   The known court keypoint positions
+
+The solver reduces localization to a small optimization problem: find the court
+position and yaw that best align observed camera rays with known court geometry.
 
 ### Constraints for Robustness
 

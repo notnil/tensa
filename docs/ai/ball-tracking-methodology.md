@@ -2,6 +2,17 @@
 
 This document describes the approach for detecting, tracking, and refining tennis ball trajectories from multi-camera stereo footage.
 
+## Why Direct Stereo
+
+Tennis balls were a poor fit for raw SDK depth-map lookups: they are small,
+fast, texture-light, and frequently motion blurred. The more reliable approach
+was to detect the ball independently in the left and right camera frames, match
+those detections using stereo constraints, and triangulate depth directly from
+disparity.
+
+That made the pipeline easier to debug. A bad 3D point could be traced back to a
+specific left/right detection pair, match constraint, or calibration issue.
+
 ## 1. Ball Detection
 
 ### Stereo Triangulation
@@ -34,6 +45,10 @@ Detections in camera frame are transformed to court coordinates:
 p_machine = R_cam @ p_camera + t_cam
 p_court = R_yaw @ p_machine + machine_position
 ```
+
+Court-space output is the key integration point with the robot runtime. Once the
+ball is expressed in meters relative to the court, targeting and drill logic do
+not need to reason about camera pixels.
 
 ## 2. Detection Filtering
 
@@ -68,6 +83,10 @@ Each frame, detections are associated with existing tracks using nearest-neighbo
 2. **Matching**: Associate each detection with the nearest predicted position within the maximum association distance (5m)
 3. **Track Creation**: Unassigned detections start new tracks
 4. **Track Termination**: Tracks without detections for N consecutive frames (default: 5) are terminated
+
+The tracker is intentionally physics-aware but not fully dependent on a perfect
+model. It uses the model to predict and refine, while still accepting noisy
+detections when they are close enough to the predicted path.
 
 ### Physics-Aware Motion Prediction
 
