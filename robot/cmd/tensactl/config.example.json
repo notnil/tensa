@@ -1,0 +1,89 @@
+{
+  "wheels": {
+    "type": "zltech",
+    "vendor_id": "1d50",
+    "sync_period": "5ms",
+    "move_acceleration": "200ms",
+    "move_deceleration": "500ms",
+    "rotate_acceleration": "100ms",
+    "rotate_deceleration": "100ms",
+    "command_timeout": "300ms"
+  },
+  "thrower": {
+    "type": "clear_core",
+    "tcp_address": "192.168.1.177:80",
+    "clear_core": {
+      "dispenser_speed": 1.5,
+      "throw_duration": "700ms",
+      "load_timeout_duration": "3s",
+      "load_poll_interval": "20ms",
+      "max_throw_speed": 300,
+      "load_before_throw": true
+    }
+  },
+  "player": {
+    "type": "mock"
+  },
+  "location": {
+    "type": "mock",
+    "filter": false
+  },
+  "stats": {
+    "type": "orin",
+    "subject": "tensa.stats"
+  },
+  "zed": {
+    "type": "prod",
+    "resolution": 4,
+    "fps": 30,
+    "depth_mode": 0,
+    "max_exposure_time": "2ms",
+    "camera_id": 0,
+    "serial_numbers": {
+      "front": 0,
+      "back": 0,
+      "left": 0,
+      "right": 0
+    },
+    "recording_directory": "recordings"
+  },
+  "navigation": {
+    "type": "two_stage",
+    "subject": "tensa.navigation",
+    "two_stage": {
+      "translation": {
+        "far_speed": 15,
+        "near_speed": 8,
+        "on_threshold": 0.2,
+        "safe_zone": {
+          "vertices": [
+            {"x": -6.5, "y": -1},
+            {"x": 6.5, "y": -1},
+            {"x": 6.5, "y": -13},
+            {"x": -6.5, "y": -13}
+          ]
+        },
+        "timeout": "10s"
+      },
+      "rotation": {
+        "max_speed": 2,
+        "min_speed": 1,
+        "on_threshold": 0.05,
+        "timeout": "10s"
+      },
+      "rest_duration": "100ms",
+      "timeout": "2m"
+    }
+  },
+  "logging": {
+    "level": 0,
+    "directory": "logs",
+    "log_stats": false,
+    "log_wheels": false
+  },
+  "ble_device_name": "Tensa",
+  "drills_directory": "../../pkg/ai/drillsx/examples/build",
+  "audio": {
+    "sound_effects_enabled": false
+  }
+}

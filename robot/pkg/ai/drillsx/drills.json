@@ -1,0 +1,371 @@
+[
+    {
+        "id": "inside-out-forehand",
+        "name": "Inside-Out Forehand",
+        "subtitle": "Catch your opponent off guard by switching directions",
+        "instructions": [
+            "Move around the ball and load your outside foot",
+            "Keep your chest closed",
+            "Brush up for heavy topspin"
+        ],
+        "difficulty": "Advanced",
+        "steps": []
+    },
+    {
+        "id": "two-handed-backhand-grip",
+        "name": "Two-Handed Backhand Grip",
+        "subtitle": "Build a stable, connected two-hander",
+        "instructions": [
+            "Continental \"handshake\" grip.",
+            "Keep hands close together with no gaps.",
+            "Maintain a relaxed and loose grip."
+        ],
+        "difficulty": "Beginner",
+        "steps": [
+            {
+                "description": "Take 20 balls from the service line",
+                "duration": "3m",
+                "markers": [
+                    {
+                        "type": "player",
+                        "color": "#FFFF00",
+                        "x": 0,
+                        "y": -5
+                    },
+                    {
+                        "type": "tensa",
+                        "color": "#FFFF00",
+                        "x": 0,
+                        "y": 5
+                    },
+                    {
+                        "type": "cone",
+                        "color": "#FFFF00",
+                        "x": 0,
+                        "y": 5
+                    }
+                ],
+                "zones": [
+                    {
+                        "type": "circle",
+                        "color": "#FFFF00",
+                        "x": 0,
+                        "y": 5,
+                        "radius": 3
+                    }
+                ]
+            },
+            {
+                "description": "Take 20 balls from the baseline",
+                "duration": "3m",
+                "markers": [
+                    {
+                        "type": "player",
+                        "color": "#FFFF00",
+                        "x": 0,
+                        "y": -5
+                    },
+                    {
+                        "type": "tensa",
+                        "color": "#FFFF00",
+                        "x": 0,
+                        "y": 5
+                    },
+                    {
+                        "type": "cone",
+                        "color": "#FFFF00",
+                        "x": 0,
+                        "y": 5
+                    }
+                ],
+                "zones": [
+                    {
+                        "type": "circle",
+                        "color": "#FFFF00",
+                        "x": 0,
+                        "y": 5,
+                        "radius": 3
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "two-handed-backhand-swing",
+        "name": "Two-Handed Backhand Swing",
+        "subtitle": "Groove a smooth, connected swing through contact",
+        "instructions": [
+            "Start your forward swing as soon as the ball bounces.",
+            "Drop your racket head below the ball to swing from low to high.",
+            "Make contact with the ball out in front of your body."
+        ],
+        "difficulty": "Intermediate",
+        "steps": [
+            {
+                "description": "Hit 15 backhands to the middle of the court from the base line",
+                "duration": "4m",
+                "markers": [
+                    {
+                        "type": "player",
+                        "color": "#FFFF00",
+                        "x": -1,
+                        "y": -2.5
+                    },
+                    {
+                        "type": "tensa",
+                        "color": "#FFFF00",
+                        "x": 0,
+                        "y": 5
+                    }
+                ],
+                "zones": []
+            },
+            {
+                "description": "Hit 15 backhands down the line from the base line",
+                "duration": "4m",
+                "markers": [
+                    {
+                        "type": "player",
+                        "color": "#FFFF00",
+                        "x": -2,
+                        "y": -2.5
+                    },
+                    {
+                        "type": "tensa",
+                        "color": "#FFFF00",
+                        "x": 2,
+                        "y": 2.5
+                    },
+                    {
+                        "type": "cone",
+                        "color": "#FFFF00",
+                        "x": -3,
+                        "y": 5
+                    }
+                ],
+                "zones": [
+                    {
+                        "type": "circle",
+                        "color": "#FFFF00",
+                        "x": -3,
+                        "y": 5,
+                        "radius": 2
+                    }
+                ]
+            },
+            {
+                "description": "Hit 15 backhands cross court from the base line",
+                "duration": "4m",
+                "markers": [
+                    {
+                        "type": "player",
+                        "color": "#FFFF00",
+                        "x": 0.5,
+                        "y": -2.5
+                    },
+                    {
+                        "type": "tensa",
+                        "color": "#FFFF00",
+                        "x": 0.5,
+                        "y": 2.5
+                    },
+                    {
+                        "type": "cone",
+                        "color": "#FFFF00",
+                        "x": 0.5,
+                        "y": 5
+                    }
+                ],
+                "zones": [
+                    {
+                        "type": "circle",
+                        "color": "#FFFF00",
+                        "x": 0.5,
+                        "y": 5,
+                        "radius": 2
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "two-handed-backhand-turn",
+        "name": "Two-Handed Backhand Turn",
+        "subtitle": "Master an early, coiled unit turn",
+        "instructions": [
+            "Turn your shoulders and core as a single unit.",
+            "Keep your hands a comfortable distance from your body.",
+            "Align your front shoulder with the incoming ball."
+        ],
+        "difficulty": "Beginner",
+        "steps": [
+            {
+                "description": "5 split-steps + unit turn shadow reps",
+                "duration": "3m20s",
+                "markers": [
+                    {
+                        "type": "player",
+                        "color": "#FFFF00",
+                        "x": -1,
+                        "y": -2
+                    },
+                    {
+                        "type": "tensa",
+                        "color": "#FFFF00",
+                        "x": 0,
+                        "y": 5
+                    }
+                ],
+                "zones": []
+            },
+            {
+                "description": "10 coach feeds focusing on early turn",
+                "duration": "3m20s",
+                "markers": [
+                    {
+                        "type": "player",
+                        "color": "#FFFF00",
+                        "x": -1,
+                        "y": -5
+                    },
+                    {
+                        "type": "tensa",
+                        "color": "#FFFF00",
+                        "x": 0,
+                        "y": 4
+                    },
+                    {
+                        "type": "cone",
+                        "color": "#FFFF00",
+                        "x": -1,
+                        "y": 4
+                    }
+                ],
+                "zones": [
+                    {
+                        "type": "circle",
+                        "color": "#FFFF00",
+                        "x": -1,
+                        "y": 4,
+                        "radius": 1.5
+                    }
+                ]
+            },
+            {
+                "description": "10 rally balls emphasizing recovery",
+                "duration": "3m20s",
+                "markers": [
+                    {
+                        "type": "player",
+                        "color": "#FFFF00",
+                        "x": 0,
+                        "y": -5
+                    },
+                    {
+                        "type": "tensa",
+                        "color": "#FFFF00",
+                        "x": 0,
+                        "y": 5
+                    }
+                ],
+                "zones": []
+            }
+        ]
+    },
+    {
+        "id": "criss-cross",
+        "name": "Criss-Cross",
+        "subtitle": "Master court coverage with alternating cross-court patterns",
+        "instructions": [
+            "Alternate between forehand and backhand sides",
+            "Focus on quick recovery to center court",
+            "Maintain balance while changing direction"
+        ],
+        "difficulty": "Intermediate",
+        "steps": []
+    },
+    {
+        "id": "progressive-volley",
+        "name": "Progressive Volley",
+        "subtitle": "Build volley skills from slow to fast",
+        "instructions": [
+            "Start with slower volleys and increase speed progressively",
+            "Move forward as you become more comfortable",
+            "Keep racket head up and make contact in front"
+        ],
+        "difficulty": "Intermediate",
+        "steps": []
+    },
+    {
+        "id": "speed-drill",
+        "name": "Speed Drill",
+        "subtitle": "Practice adjusting to different ball speeds",
+        "instructions": [
+            "Focus on timing adjustments for each speed level",
+            "Maintain proper form across all speeds",
+            "Listen for speed announcements before each set"
+        ],
+        "difficulty": "Intermediate",
+        "steps": []
+    },
+    {
+        "id": "keypoint-rotation",
+        "name": "Keypoint Rotation",
+        "subtitle": "Practice positioning and rotation at different court locations",
+        "instructions": [
+            "Machine moves to random keypoints around the court",
+            "Rotates to random angles at each position",
+            "Focus on adapting to unpredictable ball trajectories"
+        ],
+        "difficulty": "Advanced",
+        "steps": []
+    },
+    {
+        "id": "target-practice",
+        "name": "Target Practice",
+        "subtitle": "Systematic accuracy training across all court keypoints",
+        "instructions": [
+            "Machine positions at baseline center (KP19)",
+            "Shoots to keypoints 1 through 8 in sequence",
+            "Focus on hitting target zones consistently"
+        ],
+        "difficulty": "Intermediate",
+        "steps": []
+    },
+    {
+        "id": "rotating-positions",
+        "name": "Rotating Positions",
+        "subtitle": "Feed from multiple positions to random targets",
+        "instructions": [
+            "Machine rotates through three different court positions",
+            "Feeds to random target areas from each position",
+            "Adapt to varying angles and trajectories"
+        ],
+        "difficulty": "Advanced",
+        "steps": []
+    },
+    {
+        "id": "position-drill",
+        "name": "Position Drill",
+        "subtitle": "Master court positioning and awareness",
+        "instructions": [
+            "Listen for audio cues directing you to service line or baseline",
+            "Move quickly to the indicated position",
+            "Prepare to receive the ball once in position"
+        ],
+        "difficulty": "Intermediate",
+        "steps": []
+    },
+    {
+        "id": "person-detection",
+        "name": "Person Detection",
+        "subtitle": "Continuous player monitoring demonstration",
+        "instructions": [
+            "Machine continuously monitors for player presence",
+            "Audio notification plays when person is detected",
+            "Useful for testing player detection systems"
+        ],
+        "difficulty": "Beginner",
+        "steps": []
+    }
+]

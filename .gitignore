@@ -1,0 +1,30 @@
+# Raw private source checkouts kept locally for reference.
+/tensa/
+/tensa-ml/
+/tensa-firmware/
+
+# Python and ML outputs.
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+runs/
+*.engine
+*.onnx
+*.pt
+*.pth
+*.svo
+*.svo2
+*.db
+
+# Go/build artifacts.
+bin/
+dist/
+*.test
+coverage.out
+
+# Local machine files.
+.DS_Store
+logs/
+recordings/
+*.local.*

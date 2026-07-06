@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Ball Trajectory Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            overflow: hidden;
+        }
+        
+        .camera-panel-cell[data-error]::after {
+            content: 'Image not found (' attr(data-error) ')';
+            color: #ff6b6b;
+        }
+        
+        #main-wrapper {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #container {
+            flex: 1;
+            height: 100vh;
+            min-width: 0;
+            transition: flex 0.3s ease;
+        }
+        
+        #camera-panel {
+            flex: 0 0 0;
+            height: 100vh;
+            background: #111122;
+            border-left: 2px solid #4fd1c5;
+            display: none;
+            flex-direction: column;
+            z-index: 50;
+            transition: flex 0.3s ease;
+            overflow: hidden;
+        }
+        
+        #camera-panel.visible {
+            display: flex;
+            flex: 1 1 50%;
+            max-width: 50%;
+        }
+        
+        #camera-panel-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        
+        #camera-panel-header h3 {
+            margin: 0;
+            font-size: 1.1em;
+            color: #4fd1c5;
+        }
+        
+        #camera-panel-content {
+            flex: 1;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+        }
+        
+        .camera-panel-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+            flex: 1; /* Allow grid to expand */
+            min-height: 400px; /* Reduced min-height to allow flexibility */
+            flex-shrink: 0;
+        }
+        
+        .camera-panel-cell {
+            position: relative;
+            background: #000;
+            border: 2px solid #333;
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+        }
+        
+        .camera-panel-cell::after {
+            content: 'Loading image...';
+            position: absolute;
+            color: #444;
+            font-size: 0.8em;
+            z-index: 1;
+        }
+        
+        .camera-panel-cell img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            z-index: 2;
+            background: #000;
+        }
+        
+        .camera-panel-cell canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+            pointer-events: none;
+        }
+        
+        .camera-panel-label {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #4fd1c5;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: bold;
+            z-index: 2;
+        }
+        
+        #controls {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(20, 20, 40, 0.95);
+            padding: 0;
+            border-radius: 12px;
+            z-index: 1000;
+            width: 320px;
+            max-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: height 0.3s ease;
+            overflow: hidden;
+        }
+        
+        #controls-header {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        #controls-header h2 {
+            margin-bottom: 0;
+            font-size: 1.2em;
+        }
+        
+        #controls-content {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        #controls.collapsed {
+            max-height: 55px; /* Height of header */
+        }
+        
+        #controls.collapsed #controls-content {
+            display: none;
+        }
+        
+        #controls-toggle {
+            background: none;
+            color: #4fd1c5;
+            border: 1px solid rgba(79, 209, 197, 0.3);
+            border-radius: 6px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.2s;
+        }
+        
+        #controls-toggle:hover {
+            background: rgba(79, 209, 197, 0.1);
+        }
+        
+        #controls::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #controls::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+        
+        #controls::-webkit-scrollbar-thumb {
+            background: #4fd1c5;
+            border-radius: 4px;
+        }
+        
+        #controls::-webkit-scrollbar-thumb:hover {
+            background: #38b2ac;
+        }
+        
+        h2 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #4fd1c5;
+            font-weight: 600;
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group label {
+            display: block;
+            font-size: 0.85em;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .file-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #4fd1c5, #38b2ac);
+            color: #1a1a2e;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9em;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .file-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 209, 197, 0.4);
+        }
+        
+        .info-panel {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .info-label {
+            color: #888;
+        }
+        
+        .info-value {
+            color: #4fd1c5;
+            font-family: 'Monaco', monospace;
+        }
+        
+        .playback-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .playback-btn {
+            flex: 1;
+            padding: 8px;
+            background: #2d2d44;
+            color: #eee;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: background 0.2s;
+        }
+        
+        .playback-btn:hover {
+            background: #3d3d54;
+        }
+        
+        .playback-btn.active {
+            background: #4fd1c5;
+            color: #1a1a2e;
+        }
+        
+        .slider-container {
+            margin-bottom: 12px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #2d2d44;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #4fd1c5;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #4fd1c5;
+        }
+        
+        .camera-filters {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+        }
+        
+        .camera-filters .checkbox-group {
+            margin-bottom: 4px;
+        }
+        
+        .track-selector {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .track-selector select {
+            flex: 1;
+            padding: 6px;
+            background: #2d2d44;
+            color: #eee;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+        }
+        
+        .track-nav {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .track-nav .playback-btn {
+            padding: 6px 10px;
+            min-width: auto;
+        }
+        
+        .track-info {
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            font-size: 0.8em;
+            display: none;
+        }
+        
+        .track-info.visible {
+            display: block;
+        }
+        
+        .track-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        
+        .track-list {
+            max-height: 150px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 8px;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+        
+        .close-btn:hover {
+            color: #fff;
+        }
+        
+        .track-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            font-size: 0.85em;
+        }
+        
+        .track-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+        
+        #drop-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(79, 209, 197, 0.2);
+            border: 4px dashed #4fd1c5;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            font-size: 2em;
+            color: #4fd1c5;
+        }
+        
+        .keyboard-hints {
+            font-size: 0.75em;
+            color: #666;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .keyboard-hints kbd {
+            background: #2d2d44;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin: 0 2px;
+        }
+    </style>
+</head>
+<body>
+    <div id="drop-overlay">Drop tracking.json here</div>
+    
+    <div id="controls">
+        <div id="controls-header">
+            <h2>🎾 Ball Tracker</h2>
+            <button id="controls-toggle" title="Toggle Controls">▲</button>
+        </div>
+        
+        <div id="controls-content">
+            <div class="control-group">
+                <label for="file-input">Load Tracking Data</label>
+                <button class="file-btn" id="load-from-server-btn" style="margin-bottom: 8px;">Load from Server</button>
+                <input type="file" id="file-input" accept=".json">
+                <label for="file-input" class="file-btn" style="background: #2d2d44; color: #eee;">Or choose file...</label>
+            </div>
+            
+            <div class="info-panel">
+                <div class="info-row">
+                    <span class="info-label">Frame</span>
+                    <span class="info-value" id="frame-info">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Timestamp</span>
+                    <span class="info-value" id="timestamp-info">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Machine</span>
+                    <span class="info-value" id="machine-info">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Balls</span>
+                    <span class="info-value" id="balls-info">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Trajectories</span>
+                    <span class="info-value" id="tracks-info">-</span>
+                </div>
+            </div>
+            
+            <div class="playback-controls">
+                <button class="playback-btn" id="prev-btn">◀ Prev</button>
+                <button class="playback-btn" id="play-btn">▶ Play</button>
+                <button class="playback-btn" id="next-btn">Next ▶</button>
+            </div>
+            
+            <div class="slider-container">
+                <label>Frame</label>
+                <input type="range" id="frame-slider" min="0" max="0" value="0">
+            </div>
+            
+            <div class="slider-container">
+                <label>Speed: <span id="speed-value">1x</span></label>
+                <input type="range" id="speed-slider" min="0.25" max="4" step="0.25" value="1">
+            </div>
+            
+            <div class="control-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="show-raw-trails" checked>
+                    <label for="show-raw-trails">Show raw trails (noisy)</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="show-refined-trails" checked>
+                    <label for="show-refined-trails">Show refined trails (physics)</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="show-all-trajectories">
+                    <label for="show-all-trajectories">Show all trajectories</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="show-annotated" checked>
+                    <label for="show-annotated">Show annotated images</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="show-detection-overlay" checked>
+                    <label for="show-detection-overlay">Show detection overlay</label>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label>Filter by Camera</label>
+                <div class="camera-filters">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="cam-front" checked>
+                        <label for="cam-front">Front</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="cam-back" checked>
+                        <label for="cam-back">Back</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="cam-left" checked>
+                        <label for="cam-left">Left</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="cam-right" checked>
+                        <label for="cam-right">Right</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label>View Track</label>
+                <div class="track-selector">
+                    <select id="track-select">
+                        <option value="all">All Tracks</option>
+                    </select>
+                    <div class="track-nav">
+                        <button class="playback-btn" id="prev-track-btn">◀</button>
+                        <button class="playback-btn" id="next-track-btn">▶</button>
+                    </div>
+                </div>
+                <div id="track-info" class="track-info"></div>
+            </div>
+            
+            <div class="control-group">
+                <label>All Trajectories</label>
+                <div class="track-list" id="track-list">
+                    <div style="color: #666; font-size: 0.85em;">Load data to see tracks</div>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <button class="file-btn" id="toggle-cameras-btn" style="width: 100%;">📷 Show Camera Views</button>
+            </div>
+            
+            <div class="keyboard-hints">
+                <kbd>A</kbd>/<kbd>D</kbd> Prev/Next &nbsp;
+                <kbd>Space</kbd> Play/Pause &nbsp;
+                <kbd>C</kbd> Cameras
+            </div>
+        </div>
+    </div>
+    
+    <div id="main-wrapper">
+        <div id="container"></div>
+        
+        <!-- Camera Side Panel -->
+        <div id="camera-panel">
+            <div id="camera-panel-header">
+                <h3>📷 Cameras - Frame <span id="camera-panel-frame">0</span></h3>
+                <button class="close-btn" id="hide-camera-panel-btn">✕</button>
+            </div>
+            <div id="camera-panel-content">
+                <div class="camera-panel-grid">
+                    <div class="camera-panel-cell" id="cell-front">
+                        <div class="camera-panel-label">FRONT</div>
+                        <img id="panel-img-front" src="" alt="Front">
+                        <canvas id="panel-canvas-front"></canvas>
+                    </div>
+                    <div class="camera-panel-cell" id="cell-back">
+                        <div class="camera-panel-label">BACK</div>
+                        <img id="panel-img-back" src="" alt="Back">
+                        <canvas id="panel-canvas-back"></canvas>
+                    </div>
+                    <div class="camera-panel-cell" id="cell-left">
+                        <div class="camera-panel-label">LEFT</div>
+                        <img id="panel-img-left" src="" alt="Left">
+                        <canvas id="panel-canvas-left"></canvas>
+                    </div>
+                    <div class="camera-panel-cell" id="cell-right">
+                        <div class="camera-panel-label">RIGHT</div>
+                        <img id="panel-img-right" src="" alt="Right">
+                        <canvas id="panel-canvas-right"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // ====================================================================
+        // Constants
+        // ====================================================================
+        const COURT_WIDTH = 10.9728;
+        const COURT_LENGTH = 23.7744;
+        const BALL_RADIUS = 0.0335;
+        
+        // Track colors (distinct, vibrant palette)
+        const TRACK_COLORS = [
+            0xff6b6b, 0x4ecdc4, 0xffe66d, 0x95e1d3, 0xf38181,
+            0xaa96da, 0xfcbad3, 0xa8d8ea, 0xf9f871, 0xc3aed6,
+            0x78e08f, 0xf8b739, 0x6c5ce7, 0xfd79a8, 0x00cec9
+        ];
+        
+        // ====================================================================
+        // State
+        // ====================================================================
+        let scene, camera, renderer, controls;
+        let courtGroup, machineGroup, ballsGroup, trajectoriesGroup;
+        let trackingData = null;
+        let currentFrameIdx = 0;
+        let isPlaying = false;
+        let playInterval = null;
+        let playSpeed = 1;
+        let selectedTrackId = 'all';  // 'all' or track_id number
+        let cameraPanelVisible = false;
+        
+        // ====================================================================
+        // Initialization
+        // ====================================================================
+        init();
+        animate();
+        
+        function init() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a2e);
+            
+            // Camera
+            const container = document.getElementById('container');
+            camera = new THREE.PerspectiveCamera(
+                60, container.clientWidth / container.clientHeight, 0.1, 1000
+            );
+            camera.position.set(0, 20, -25);
+            camera.lookAt(0, 0, -6);
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('container').appendChild(renderer.domElement);
+            
+            // Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.target.set(0, 0, -6);
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(15, 30, 15);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.near = 1;
+            directionalLight.shadow.camera.far = 100;
+            directionalLight.shadow.camera.left = -20;
+            directionalLight.shadow.camera.right = 20;
+            directionalLight.shadow.camera.top = 20;
+            directionalLight.shadow.camera.bottom = -20;
+            scene.add(directionalLight);
+            
+            // Create groups
+            courtGroup = new THREE.Group();
+            machineGroup = new THREE.Group();
+            ballsGroup = new THREE.Group();
+            trajectoriesGroup = new THREE.Group();
+            
+            scene.add(courtGroup);
+            scene.add(machineGroup);
+            scene.add(ballsGroup);
+            scene.add(trajectoriesGroup);
+            
+            // Create court
+            createCourt();
+            createMachine();
+            
+            // Event listeners
+            setupEventListeners();
+        }
+        
+        function createCourt() {
+            const colorInner = 0x2A6CB5;
+            const colorOuter = 0x2d5a27;
+            
+            // Outer surface
+            const outerW = COURT_WIDTH + 8;
+            const outerL = COURT_LENGTH + 8;
+            const outerGeo = new THREE.PlaneGeometry(outerW, outerL);
+            const outerMat = new THREE.MeshLambertMaterial({ color: colorOuter });
+            const outer = new THREE.Mesh(outerGeo, outerMat);
+            outer.rotation.x = -Math.PI / 2;
+            outer.receiveShadow = true;
+            courtGroup.add(outer);
+            
+            // Inner surface
+            const innerGeo = new THREE.PlaneGeometry(COURT_WIDTH, COURT_LENGTH);
+            const innerMat = new THREE.MeshLambertMaterial({ color: colorInner });
+            const inner = new THREE.Mesh(innerGeo, innerMat);
+            inner.rotation.x = -Math.PI / 2;
+            inner.position.y = 0.005;
+            inner.receiveShadow = true;
+            courtGroup.add(inner);
+            
+            // Lines
+            const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const lineWidth = 0.05;
+            
+            const createLine = (w, l, x, z) => {
+                const geo = new THREE.PlaneGeometry(w, l);
+                const mesh = new THREE.Mesh(geo, lineMat);
+                mesh.rotation.x = -Math.PI / 2;
+                mesh.position.set(x, 0.01, z);
+                courtGroup.add(mesh);
+            };
+            
+            const halfW = COURT_WIDTH / 2;
+            const halfL = COURT_LENGTH / 2;
+            const serviceLineDist = 6.4008;
+            const doublesSideW = 1.3716;
+            const singlesHalfW = (COURT_WIDTH - (doublesSideW * 2)) / 2;
+            
+            // Baselines
+            createLine(COURT_WIDTH, lineWidth, 0, halfL);
+            createLine(COURT_WIDTH, lineWidth, 0, -halfL);
+            
+            // Sidelines
+            createLine(lineWidth, COURT_LENGTH, halfW, 0);
+            createLine(lineWidth, COURT_LENGTH, -halfW, 0);
+            createLine(lineWidth, COURT_LENGTH, singlesHalfW, 0);
+            createLine(lineWidth, COURT_LENGTH, -singlesHalfW, 0);
+            
+            // Service lines
+            createLine(singlesHalfW * 2, lineWidth, 0, serviceLineDist);
+            createLine(singlesHalfW * 2, lineWidth, 0, -serviceLineDist);
+            createLine(lineWidth, serviceLineDist * 2, 0, 0);
+            
+            // Center marks
+            createLine(lineWidth, 0.2, 0, halfL - 0.1);
+            createLine(lineWidth, 0.2, 0, -halfL + 0.1);
+            
+            // Net posts
+            const postHeight = 1.07;
+            const postGeo = new THREE.CylinderGeometry(0.04, 0.04, postHeight);
+            const postMat = new THREE.MeshLambertMaterial({ color: 0x333333 });
+            
+            const postL = new THREE.Mesh(postGeo, postMat);
+            postL.position.set(-halfW - 0.1, postHeight / 2, 0);
+            postL.castShadow = true;
+            courtGroup.add(postL);
+            
+            const postR = new THREE.Mesh(postGeo, postMat);
+            postR.position.set(halfW + 0.1, postHeight / 2, 0);
+            postR.castShadow = true;
+            courtGroup.add(postR);
+            
+            // Net
+            const netWidth = COURT_WIDTH + 0.2;
+            const netHeight = 0.914;
+            const netGeo = new THREE.BoxGeometry(netWidth, netHeight, 0.02);
+            const netMat = new THREE.MeshLambertMaterial({
+                color: 0x222222,
+                transparent: true,
+                opacity: 0.5
+            });
+            const net = new THREE.Mesh(netGeo, netMat);
+            net.position.set(0, netHeight / 2, 0);
+            courtGroup.add(net);
+            
+            // Net tape
+            const tapeGeo = new THREE.BoxGeometry(netWidth, 0.06, 0.04);
+            const tapeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const tape = new THREE.Mesh(tapeGeo, tapeMat);
+            tape.position.set(0, netHeight, 0);
+            courtGroup.add(tape);
+        }
+        
+        function createMachine() {
+            const machineHeight = 1.3;
+            const machineGeo = new THREE.BoxGeometry(0.5, machineHeight, 0.5);
+            machineGeo.translate(0, machineHeight / 2, 0);
+            const machineMat = new THREE.MeshLambertMaterial({ color: 0xe74c3c });
+            const machineMesh = new THREE.Mesh(machineGeo, machineMat);
+            machineMesh.castShadow = true;
+            machineGroup.add(machineMesh);
+            
+            // Front indicator
+            const frontGeo = new THREE.BoxGeometry(0.3, 0.15, 0.08);
+            const frontMat = new THREE.MeshLambertMaterial({ color: 0xecf0f1 });
+            const frontMarker = new THREE.Mesh(frontGeo, frontMat);
+            frontMarker.position.set(0, machineHeight - 0.15, 0.26);
+            machineGroup.add(frontMarker);
+            
+            // Hide initially
+            machineGroup.visible = false;
+        }
+        
+        // ====================================================================
+        // Event Listeners
+        // ====================================================================
+        function setupEventListeners() {
+            // File input
+            document.getElementById('file-input').addEventListener('change', handleFileSelect);
+            document.getElementById('load-from-server-btn').addEventListener('click', loadFromServer);
+            
+            // Drag and drop
+            document.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                document.getElementById('drop-overlay').style.display = 'flex';
+            });
+            document.addEventListener('dragleave', (e) => {
+                if (e.target === document.getElementById('drop-overlay')) {
+                    document.getElementById('drop-overlay').style.display = 'none';
+                }
+            });
+            document.addEventListener('drop', (e) => {
+                e.preventDefault();
+                document.getElementById('drop-overlay').style.display = 'none';
+                if (e.dataTransfer.files.length > 0) {
+                    loadFile(e.dataTransfer.files[0]);
+                }
+            });
+            
+            // Playback controls
+            document.getElementById('prev-btn').addEventListener('click', prevFrame);
+            document.getElementById('next-btn').addEventListener('click', nextFrame);
+            document.getElementById('play-btn').addEventListener('click', togglePlay);
+            
+            // Sliders
+            document.getElementById('frame-slider').addEventListener('input', (e) => {
+                currentFrameIdx = parseInt(e.target.value);
+                updateFrame();
+            });
+            document.getElementById('speed-slider').addEventListener('input', (e) => {
+                playSpeed = parseFloat(e.target.value);
+                document.getElementById('speed-value').textContent = playSpeed + 'x';
+                if (isPlaying) {
+                    stopPlay();
+                    startPlay();
+                }
+            });
+            
+            // Checkboxes
+            document.getElementById('show-raw-trails').addEventListener('change', updateFrame);
+            document.getElementById('show-refined-trails').addEventListener('change', updateFrame);
+            document.getElementById('show-all-trajectories').addEventListener('change', updateFrame);
+            document.getElementById('show-annotated').addEventListener('change', updateCameraImages);
+            document.getElementById('show-detection-overlay').addEventListener('change', updateCameraImages);
+            
+            // Camera filters
+            document.getElementById('cam-front').addEventListener('change', updateFrame);
+            document.getElementById('cam-back').addEventListener('change', updateFrame);
+            document.getElementById('cam-left').addEventListener('change', updateFrame);
+            document.getElementById('cam-right').addEventListener('change', updateFrame);
+            
+            // Track selector
+            document.getElementById('track-select').addEventListener('change', (e) => {
+                selectedTrackId = e.target.value === 'all' ? 'all' : parseInt(e.target.value);
+                updateTrackInfo();
+                updateFrame();
+                // Jump to track start if specific track selected
+                if (selectedTrackId !== 'all') {
+                    jumpToTrackStart(selectedTrackId);
+                }
+            });
+            document.getElementById('prev-track-btn').addEventListener('click', prevTrack);
+            document.getElementById('next-track-btn').addEventListener('click', nextTrack);
+            
+            // Keyboard
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'a' || e.key === 'A') prevFrame();
+                if (e.key === 'd' || e.key === 'D') nextFrame();
+                if (e.key === ' ') {
+                    e.preventDefault();
+                    togglePlay();
+                }
+                if (e.key === 'c' || e.key === 'C') toggleCameraPanel();
+            });
+            
+            // Camera panel
+            document.getElementById('toggle-cameras-btn').addEventListener('click', toggleCameraPanel);
+            document.getElementById('hide-camera-panel-btn').addEventListener('click', toggleCameraPanel);
+            
+            // Controls toggle
+            document.getElementById('controls-header').addEventListener('click', (e) => {
+                const controls = document.getElementById('controls');
+                const btn = document.getElementById('controls-toggle');
+                
+                // Don't toggle if the user clicked the button itself (it will bubble up)
+                // but we handle both for better UX
+                controls.classList.toggle('collapsed');
+                btn.textContent = controls.classList.contains('collapsed') ? '▼' : '▲';
+            });
+            
+            // Window resize
+            window.addEventListener('resize', onWindowResize);
+        }
+        
+        function onWindowResize() {
+            const container = document.getElementById('container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+        
+        function handleFileSelect(e) {
+            if (e.target.files.length > 0) {
+                loadFile(e.target.files[0]);
+            }
+        }
+        
+        function loadFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    trackingData = JSON.parse(e.target.result);
+                    initializeWithData();
+                } catch (err) {
+                    alert('Error parsing JSON: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        function loadFromServer() {
+            fetch('/tracking.json')
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to load tracking.json from server');
+                    return res.json();
+                })
+                .then(data => {
+                    trackingData = data;
+                    initializeWithData();
+                })
+                .catch(err => {
+                    alert('Error loading from server: ' + err.message + '\n\nMake sure you are running ball_tracker_server.py');
+                });
+        }
+        
+        // ====================================================================
+        // Data Handling
+        // ====================================================================
+        function initializeWithData() {
+            if (!trackingData || !trackingData.frames) {
+                alert('Invalid tracking data format');
+                return;
+            }
+            
+            const numFrames = trackingData.frames.length;
+            document.getElementById('frame-slider').max = Math.max(0, numFrames - 1);
+            document.getElementById('tracks-info').textContent = 
+                trackingData.trajectories ? trackingData.trajectories.length : 0;
+            
+            // Populate track selector
+            populateTrackSelector();
+            
+            // Update track list
+            updateTrackList();
+            
+            // Ensure camera panel is shown when data is loaded
+            if (!cameraPanelVisible) {
+                toggleCameraPanel();
+            }
+            
+            selectedTrackId = 'all';
+            currentFrameIdx = 0;
+            updateFrame();
+        }
+        
+        function populateTrackSelector() {
+            const select = document.getElementById('track-select');
+            select.innerHTML = '<option value="all">All Tracks</option>';
+            
+            if (!trackingData || !trackingData.trajectories) return;
+            
+            trackingData.trajectories.forEach(track => {
+                const opt = document.createElement('option');
+                opt.value = track.track_id;
+                const duration = ((track.end_frame - track.start_frame) / 30).toFixed(2);
+                opt.textContent = `Track ${track.track_id} (${track.num_detections} pts, ${duration}s)`;
+                select.appendChild(opt);
+            });
+        }
+        
+        function updateTrackInfo() {
+            const infoDiv = document.getElementById('track-info');
+            
+            if (selectedTrackId === 'all' || !trackingData || !trackingData.trajectories) {
+                infoDiv.classList.remove('visible');
+                return;
+            }
+            
+            const track = trackingData.trajectories.find(t => t.track_id === selectedTrackId);
+            if (!track) {
+                infoDiv.classList.remove('visible');
+                return;
+            }
+            
+            // Calculate stats
+            const positions = track.positions;
+            const yValues = positions.map(p => p[1]);
+            const zValues = positions.map(p => p[2]);
+            const yRange = Math.max(...yValues) - Math.min(...yValues);
+            const zMax = Math.max(...zValues);
+            const duration = ((track.end_frame - track.start_frame) / 30).toFixed(2);
+            const cameras = [...new Set(track.cameras)].join(', ');
+            
+            infoDiv.innerHTML = `
+                <div class="track-info-row"><span>Frames:</span><span>${track.start_frame} - ${track.end_frame}</span></div>
+                <div class="track-info-row"><span>Duration:</span><span>${duration}s</span></div>
+                <div class="track-info-row"><span>Points:</span><span>${track.num_detections}</span></div>
+                <div class="track-info-row"><span>Y Range:</span><span>${yRange.toFixed(2)}m</span></div>
+                <div class="track-info-row"><span>Max Height:</span><span>${zMax.toFixed(2)}m</span></div>
+                <div class="track-info-row"><span>Cameras:</span><span>${cameras}</span></div>
+            `;
+            infoDiv.classList.add('visible');
+        }
+        
+        function jumpToTrackStart(trackId) {
+            const track = trackingData.trajectories.find(t => t.track_id === trackId);
+            if (track) {
+                // Find the frame index that matches the track's start frame
+                const frameIdx = trackingData.frames.findIndex(f => f.frame_idx >= track.start_frame);
+                if (frameIdx >= 0) {
+                    currentFrameIdx = frameIdx;
+                    updateFrame();
+                }
+            }
+        }
+        
+        function prevTrack() {
+            if (!trackingData || !trackingData.trajectories || trackingData.trajectories.length === 0) return;
+            
+            const trackIds = trackingData.trajectories.map(t => t.track_id);
+            const currentIdx = trackIds.indexOf(selectedTrackId);
+            
+            if (selectedTrackId === 'all' || currentIdx <= 0) {
+                // Go to last track
+                selectedTrackId = trackIds[trackIds.length - 1];
+            } else {
+                selectedTrackId = trackIds[currentIdx - 1];
+            }
+            
+            document.getElementById('track-select').value = selectedTrackId;
+            updateTrackInfo();
+            jumpToTrackStart(selectedTrackId);
+            updateFrame();
+        }
+        
+        function nextTrack() {
+            if (!trackingData || !trackingData.trajectories || trackingData.trajectories.length === 0) return;
+            
+            const trackIds = trackingData.trajectories.map(t => t.track_id);
+            const currentIdx = trackIds.indexOf(selectedTrackId);
+            
+            if (selectedTrackId === 'all' || currentIdx >= trackIds.length - 1) {
+                // Go to first track
+                selectedTrackId = trackIds[0];
+            } else {
+                selectedTrackId = trackIds[currentIdx + 1];
+            }
+            
+            document.getElementById('track-select').value = selectedTrackId;
+            updateTrackInfo();
+            jumpToTrackStart(selectedTrackId);
+            updateFrame();
+        }
+        
+        function updateTrackList() {
+            const container = document.getElementById('track-list');
+            container.innerHTML = '';
+            
+            if (!trackingData || !trackingData.trajectories || trackingData.trajectories.length === 0) {
+                container.innerHTML = '<div style="color: #666; font-size: 0.85em;">No trajectories</div>';
+                return;
+            }
+            
+            trackingData.trajectories.forEach((track, i) => {
+                const color = TRACK_COLORS[track.track_id % TRACK_COLORS.length];
+                const div = document.createElement('div');
+                div.className = 'track-item';
+                div.innerHTML = `
+                    <div class="track-color" style="background: #${color.toString(16).padStart(6, '0')}"></div>
+                    <span>Track ${track.track_id}: frames ${track.start_frame}-${track.end_frame} (${track.num_detections} pts)</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        function updateFrame() {
+            if (!trackingData || !trackingData.frames) return;
+            
+            const frame = trackingData.frames[currentFrameIdx];
+            if (!frame) return;
+            
+            // Update info panel
+            document.getElementById('frame-info').textContent = 
+                `${currentFrameIdx + 1} / ${trackingData.frames.length}`;
+            document.getElementById('timestamp-info').textContent = 
+                frame.timestamp_ns ? frame.timestamp_ns.slice(-10) : '-';
+            
+            if (frame.machine) {
+                const m = frame.machine;
+                document.getElementById('machine-info').textContent = 
+                    `(${m.x.toFixed(1)}, ${m.y.toFixed(1)}) ${m.yaw.toFixed(0)}°`;
+                
+                // Update machine position
+                // Three.js: X=right, Y=up, Z=forward (into screen)
+                // Court coords: X=right, Y=forward, Z=up
+                // Negate X to flip to correct orientation (deuce court = positive X)
+                machineGroup.position.set(-m.x, 0, m.y);
+                machineGroup.rotation.y = (90 + m.yaw) * Math.PI / 180;
+                machineGroup.visible = true;
+            } else {
+                document.getElementById('machine-info').textContent = '-';
+                machineGroup.visible = false;
+            }
+            
+            // Update slider
+            document.getElementById('frame-slider').value = currentFrameIdx;
+            
+            // Clear and redraw balls
+            updateBalls(frame);
+            
+            // Update ball count (after filtering)
+            document.getElementById('balls-info').textContent = ballsGroup.children.length;
+            
+            // Update trajectories
+            updateTrajectories();
+            
+            // Update camera images if panel is visible
+            updateCameraImages();
+        }
+        
+        function getEnabledCameras() {
+            return {
+                front: document.getElementById('cam-front').checked,
+                back: document.getElementById('cam-back').checked,
+                left: document.getElementById('cam-left').checked,
+                right: document.getElementById('cam-right').checked
+            };
+        }
+        
+        function updateBalls(frame) {
+            // Clear existing balls
+            while (ballsGroup.children.length > 0) {
+                ballsGroup.remove(ballsGroup.children[0]);
+            }
+            
+            if (!trackingData) return;
+            
+            const enabledCameras = getEnabledCameras();
+            const showRaw = document.getElementById('show-raw-trails').checked;
+            const showRefined = document.getElementById('show-refined-trails').checked;
+            const currentFrameNum = frame.frame_idx;
+            
+            // 1. Show Raw Balls (from frame detections)
+            if (showRaw && frame.detections) {
+                frame.detections.forEach(det => {
+                    if (!enabledCameras[det.cam]) return;
+                    if (selectedTrackId !== 'all' && det.track_id !== selectedTrackId) return;
+                    
+                    const baseColor = det.track_id 
+                        ? TRACK_COLORS[det.track_id % TRACK_COLORS.length] 
+                        : 0xffff00;
+                    
+                    const ballGeo = new THREE.SphereGeometry(BALL_RADIUS);
+                    const ballMat = new THREE.MeshLambertMaterial({ 
+                        color: baseColor,
+                        transparent: true,
+                        opacity: 0.8
+                    });
+                    const ball = new THREE.Mesh(ballGeo, ballMat);
+                    ball.position.set(-det.x, det.z, det.y);
+                    ball.castShadow = true;
+                    ballsGroup.add(ball);
+                });
+            }
+
+            // 2. Show Refined Balls (Interpolated for ALL active tracks)
+            if (showRefined && trackingData.trajectories) {
+                trackingData.trajectories.forEach(track => {
+                    // Filter by selected track
+                    if (selectedTrackId !== 'all' && track.track_id !== selectedTrackId) return;
+                    
+                    // Check if track is active at this frame
+                    if (currentFrameNum >= track.start_frame && currentFrameNum <= track.end_frame) {
+                        if (track.refined_positions) {
+                            // In the new dense format, index 0 is start_frame
+                            const refinedIdx = currentFrameNum - track.start_frame;
+                            const rp = track.refined_positions[refinedIdx];
+                            
+                            if (rp) {
+                                const baseColor = TRACK_COLORS[track.track_id % TRACK_COLORS.length];
+                                
+                                // Main ball - larger and more visible
+                                const refBallGeo = new THREE.SphereGeometry(BALL_RADIUS * 2.0);
+                                const refBallMat = new THREE.MeshLambertMaterial({ 
+                                    color: baseColor,
+                                    emissive: baseColor,
+                                    emissiveIntensity: 0.8
+                                });
+                                const refBall = new THREE.Mesh(refBallGeo, refBallMat);
+                                refBall.position.set(-rp[0], rp[2], rp[1]);
+                                refBall.castShadow = true;
+                                ballsGroup.add(refBall);
+                                
+                                // Outer glow halo - larger transparent sphere
+                                const haloGeo = new THREE.SphereGeometry(BALL_RADIUS * 4.0);
+                                const haloMat = new THREE.MeshBasicMaterial({
+                                    color: baseColor,
+                                    transparent: true,
+                                    opacity: 0.3,
+                                    side: THREE.BackSide
+                                });
+                                const halo = new THREE.Mesh(haloGeo, haloMat);
+                                halo.position.set(-rp[0], rp[2], rp[1]);
+                                ballsGroup.add(halo);
+                                
+                                // Vertical drop line to ground for spatial reference
+                                const dropLineGeo = new THREE.BufferGeometry().setFromPoints([
+                                    new THREE.Vector3(-rp[0], 0, rp[1]),
+                                    new THREE.Vector3(-rp[0], rp[2], rp[1])
+                                ]);
+                                const dropLineMat = new THREE.LineDashedMaterial({
+                                    color: baseColor,
+                                    transparent: true,
+                                    opacity: 0.5,
+                                    dashSize: 0.1,
+                                    gapSize: 0.05
+                                });
+                                const dropLine = new THREE.Line(dropLineGeo, dropLineMat);
+                                dropLine.computeLineDistances();
+                                ballsGroup.add(dropLine);
+                                
+                                // Ground marker ring
+                                const ringGeo = new THREE.RingGeometry(0.08, 0.12, 32);
+                                const ringMat = new THREE.MeshBasicMaterial({
+                                    color: baseColor,
+                                    transparent: true,
+                                    opacity: 0.6,
+                                    side: THREE.DoubleSide
+                                });
+                                const ring = new THREE.Mesh(ringGeo, ringMat);
+                                ring.rotation.x = -Math.PI / 2;
+                                ring.position.set(-rp[0], 0.01, rp[1]);
+                                ballsGroup.add(ring);
+
+                                // If raw is also shown AND we have a raw detection this frame, draw connector
+                                if (showRaw && frame.detections) {
+                                    const det = frame.detections.find(d => d.track_id === track.track_id);
+                                    if (det && enabledCameras[det.cam]) {
+                                        const lineGeo = new THREE.BufferGeometry().setFromPoints([
+                                            new THREE.Vector3(-det.x, det.z, det.y),
+                                            new THREE.Vector3(-rp[0], rp[2], rp[1])
+                                        ]);
+                                        const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 0.3, transparent: true });
+                                        const connector = new THREE.Line(lineGeo, lineMat);
+                                        ballsGroup.add(connector);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        function updateTrajectories() {
+            // Clear existing trajectories
+            while (trajectoriesGroup.children.length > 0) {
+                trajectoriesGroup.remove(trajectoriesGroup.children[0]);
+            }
+            
+            if (!trackingData || !trackingData.trajectories) return;
+            
+            const showRaw = document.getElementById('show-raw-trails').checked;
+            const showRefined = document.getElementById('show-refined-trails').checked;
+            const showAll = document.getElementById('show-all-trajectories').checked;
+            
+            if (!showRaw && !showRefined) return;
+            
+            const currentFrame = trackingData.frames[currentFrameIdx];
+            const currentFrameNum = currentFrame ? currentFrame.frame_idx : currentFrameIdx;
+            
+            const enabledCameras = getEnabledCameras();
+            
+            trackingData.trajectories.forEach(track => {
+                // Filter by selected track
+                if (selectedTrackId !== 'all' && track.track_id !== selectedTrackId) return;
+                
+                // If viewing a specific track, always show the full trajectory
+                const viewingSpecificTrack = selectedTrackId !== 'all';
+                
+                // Check if track is active at current frame
+                const isActive = track.start_frame <= currentFrameNum && track.end_frame >= currentFrameNum;
+                
+                if (!viewingSpecificTrack && !showAll && !isActive) return;
+                
+                // Check if track has any detections from enabled cameras
+                const hasEnabledCamera = track.cameras && track.cameras.some(cam => enabledCameras[cam]);
+                if (!hasEnabledCamera) return;
+                
+                const color = TRACK_COLORS[track.track_id % TRACK_COLORS.length];
+
+                // 1. Draw Raw Trajectory (Noisy Points)
+                if (showRaw) {
+                    const rawPositions = [];
+                    for (let i = 0; i < track.positions.length; i++) {
+                        const frameIdx = track.frame_indices[i];
+                        const cam = track.cameras ? track.cameras[i] : null;
+                        if (cam && !enabledCameras[cam]) continue;
+                        
+                        if (viewingSpecificTrack || showAll || frameIdx <= currentFrameNum) {
+                            const p = track.positions[i];
+                            rawPositions.push(new THREE.Vector3(-p[0], p[2], p[1]));
+                        }
+                    }
+                    
+                    if (rawPositions.length >= 2) {
+                        const geometry = new THREE.BufferGeometry().setFromPoints(rawPositions);
+                        const material = new THREE.LineBasicMaterial({ 
+                            color: color,
+                            linewidth: 1,
+                            transparent: true,
+                            opacity: isActive ? 0.4 : 0.2 // Raw points are dimmer
+                        });
+                        const line = new THREE.Line(geometry, material);
+                        trajectoriesGroup.add(line);
+                        
+                        // Add points for raw detections
+                        const pointsGeo = new THREE.BufferGeometry().setFromPoints(rawPositions);
+                        const pointsMat = new THREE.PointsMaterial({
+                            color: color,
+                            size: 0.1,
+                            transparent: true,
+                            opacity: isActive ? 0.6 : 0.3
+                        });
+                        const points = new THREE.Points(pointsGeo, pointsMat);
+                        trajectoriesGroup.add(points);
+                    }
+                }
+
+                // 2. Draw Refined Trajectory (Smooth Physics)
+                if (showRefined && track.refined_positions) {
+                    const refinedPositions = [];
+                    // In the new dense format, track.refined_positions has a point for EVERY frame
+                    // from track.start_frame to track.end_frame.
+                    for (let i = 0; i < track.refined_positions.length; i++) {
+                        const frameIdx = track.start_frame + i;
+                        if (viewingSpecificTrack || showAll || frameIdx <= currentFrameNum) {
+                            const p = track.refined_positions[i];
+                            refinedPositions.push(new THREE.Vector3(-p[0], p[2], p[1]));
+                        }
+                    }
+
+                    if (refinedPositions.length >= 2) {
+                        const geometry = new THREE.BufferGeometry().setFromPoints(refinedPositions);
+                        const material = new THREE.LineBasicMaterial({ 
+                            color: color,
+                            linewidth: 3, // Thicker line for refined
+                            transparent: true,
+                            opacity: isActive ? 1.0 : 0.6
+                        });
+                        const line = new THREE.Line(geometry, material);
+                        trajectoriesGroup.add(line);
+                    }
+                }
+            });
+        }
+        
+        // ====================================================================
+        // Playback
+        // ====================================================================
+        function prevFrame() {
+            if (!trackingData) return;
+            if (currentFrameIdx > 0) {
+                currentFrameIdx--;
+                updateFrame();
+            }
+        }
+        
+        function nextFrame() {
+            if (!trackingData) return;
+            if (currentFrameIdx < trackingData.frames.length - 1) {
+                currentFrameIdx++;
+                updateFrame();
+            } else if (isPlaying) {
+                togglePlay(); // Stop at end
+            }
+        }
+        
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            const btn = document.getElementById('play-btn');
+            
+            if (isPlaying) {
+                btn.textContent = '⏸ Pause';
+                btn.classList.add('active');
+                startPlay();
+            } else {
+                btn.textContent = '▶ Play';
+                btn.classList.remove('active');
+                stopPlay();
+            }
+        }
+        
+        function startPlay() {
+            const interval = 1000 / (30 * playSpeed); // Assuming 30fps base
+            playInterval = setInterval(nextFrame, interval);
+        }
+        
+        function stopPlay() {
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+        
+        // ====================================================================
+        // Camera Panel (Side Panel)
+        // ====================================================================
+        function toggleCameraPanel() {
+            cameraPanelVisible = !cameraPanelVisible;
+            const panel = document.getElementById('camera-panel');
+            const btn = document.getElementById('toggle-cameras-btn');
+            
+            if (cameraPanelVisible) {
+                panel.classList.add('visible');
+                btn.textContent = '📷 Hide Cameras';
+                updateCameraImages();
+            } else {
+                panel.classList.remove('visible');
+                btn.textContent = '📷 Show Cameras';
+            }
+            
+            // Resize Three.js renderer multiple times during transition
+            let count = 0;
+            const resizeInterval = setInterval(() => {
+                onWindowResize();
+                count++;
+                if (count > 30) clearInterval(resizeInterval);
+            }, 10);
+        }
+        
+        function updateCameraImages() {
+            if (!trackingData || !trackingData.frames) return;
+            if (!cameraPanelVisible) return;
+            
+            const frame = trackingData.frames[currentFrameIdx];
+            if (!frame) return;
+            
+            const timestamp = frame.timestamp_ns;
+            const useAnnotated = document.getElementById('show-annotated').checked;
+            const showOverlay = document.getElementById('show-detection-overlay').checked;
+            
+            // Update side panel
+            document.getElementById('camera-panel-frame').textContent = currentFrameIdx;
+            ['front', 'back', 'left', 'right'].forEach(cam => {
+                const img = document.getElementById(`panel-img-${cam}`);
+                const canvas = document.getElementById(`panel-canvas-${cam}`);
+                if (img) {
+                    const primarySrc = useAnnotated ? `/data/${timestamp}/${cam}_annotated.jpg` : `/data/${timestamp}/${cam}.jpg`;
+                    const fallbackSrc = `/data/${timestamp}/${cam}.jpg`;
+                    
+                    img.src = primarySrc;
+                    
+                    // Reset onerror to avoid infinite loops
+                    img.onerror = () => {
+                        if (useAnnotated && img.src.includes('_annotated')) {
+                            img.src = fallbackSrc;
+                        } else {
+                            img.style.display = 'none';
+                            img.parentElement.setAttribute('data-error', 'Not Found');
+                        }
+                    };
+                    
+                    img.onload = () => {
+                        img.style.display = 'block';
+                        img.parentElement.removeAttribute('data-error');
+                        // Draw overlay after image loads
+                        if (showOverlay && canvas) {
+                            drawDetectionOverlay(cam, canvas, img, frame);
+                        }
+                    };
+                }
+                
+                // Clear canvas if overlay disabled
+                if (canvas && !showOverlay) {
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = canvas.offsetWidth;
+                    canvas.height = canvas.offsetHeight;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            });
+        }
+        
+        function drawDetectionOverlay(cam, canvas, img, frame) {
+            const ctx = canvas.getContext('2d');
+            const cell = canvas.parentElement;
+            
+            // Set canvas size to match the cell
+            canvas.width = cell.offsetWidth;
+            canvas.height = cell.offsetHeight;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (!frame.detections) return;
+            
+            // Get image natural dimensions and displayed dimensions
+            const imgNaturalW = img.naturalWidth || 1920;
+            const imgNaturalH = img.naturalHeight || 1200;
+            
+            // Calculate scaling based on object-fit: contain
+            const cellW = cell.offsetWidth;
+            const cellH = cell.offsetHeight;
+            const imgAspect = imgNaturalW / imgNaturalH;
+            const cellAspect = cellW / cellH;
+            
+            let displayW, displayH, offsetX, offsetY;
+            if (imgAspect > cellAspect) {
+                // Image is wider - fit to width
+                displayW = cellW;
+                displayH = cellW / imgAspect;
+                offsetX = 0;
+                offsetY = (cellH - displayH) / 2;
+            } else {
+                // Image is taller - fit to height
+                displayH = cellH;
+                displayW = cellH * imgAspect;
+                offsetX = (cellW - displayW) / 2;
+                offsetY = 0;
+            }
+            
+            const scaleX = displayW / imgNaturalW;
+            const scaleY = displayH / imgNaturalH;
+            
+            // Draw detections for this camera (only selected track)
+            frame.detections.forEach(det => {
+                if (det.cam !== cam) return;
+                if (det.pixel_x === undefined || det.pixel_y === undefined) return;
+                
+                // Only show selected track (or all if 'all' selected)
+                if (selectedTrackId !== 'all' && det.track_id !== selectedTrackId) return;
+                
+                const color = det.track_id 
+                    ? TRACK_COLORS[det.track_id % TRACK_COLORS.length] 
+                    : 0xffff00;
+                
+                // Extract RGB components for transparent colors
+                const r = (color >> 16) & 255;
+                const g = (color >> 8) & 255;
+                const b = color & 255;
+                
+                // Draw bounding box if available (transparent fill)
+                if (det.bbox && det.bbox.length === 4) {
+                    const [x1, y1, x2, y2] = det.bbox;
+                    const boxX = offsetX + x1 * scaleX;
+                    const boxY = offsetY + y1 * scaleY;
+                    const boxW = (x2 - x1) * scaleX;
+                    const boxH = (y2 - y1) * scaleY;
+                    
+                    // Transparent fill
+                    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.25)`;
+                    ctx.fillRect(boxX, boxY, boxW, boxH);
+                    
+                    // Semi-transparent stroke
+                    ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.7)`;
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(boxX, boxY, boxW, boxH);
+                }
+                
+                // Draw center point (transparent ring instead of filled)
+                const px = offsetX + det.pixel_x * scaleX;
+                const py = offsetY + det.pixel_y * scaleY;
+                
+                ctx.beginPath();
+                ctx.arc(px, py, 8, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.9)`;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // Draw crosshair
+                ctx.beginPath();
+                ctx.moveTo(px - 12, py);
+                ctx.lineTo(px + 12, py);
+                ctx.moveTo(px, py - 12);
+                ctx.lineTo(px, py + 12);
+                ctx.strokeStyle = `rgba(255, 255, 255, 0.7)`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                // Draw track ID label
+                if (det.track_id) {
+                    ctx.font = 'bold 11px sans-serif';
+                    ctx.fillStyle = `rgba(255, 255, 255, 0.9)`;
+                    ctx.strokeStyle = `rgba(0, 0, 0, 0.7)`;
+                    ctx.lineWidth = 2;
+                    ctx.strokeText(`T${det.track_id}`, px + 12, py - 8);
+                    ctx.fillText(`T${det.track_id}`, px + 12, py - 8);
+                }
+            });
+        }
+        
+        // ====================================================================
+        // Animation Loop
+        // ====================================================================
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

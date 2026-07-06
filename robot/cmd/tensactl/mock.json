@@ -1,0 +1,61 @@
+{
+    "wheels": {
+        "type": "mock",
+        "command_timeout": "300ms"
+    },
+    "thrower": {
+        "type": "mock"
+    },
+    "player": {
+        "type": "mock"
+    },
+    "location": {
+        "type": "mock"
+    },
+    "zed": {
+        "type": "mock",
+        "resolution": 2,
+        "fps": 30,
+        "depth_mode": 1,
+        "camera_id": 0
+    },
+    "navigation": {
+        "type": "two_stage",
+        "subject": "tensa.navigation",
+        "two_stage": {
+            "translation": {
+                "far_speed": 2,
+                "near_speed": 1,
+                "on_threshold": 1,
+                "safe_zone": {
+                    "vertices": [
+                        {"x": -6.5, "y": -1},
+                        {"x": 6.5, "y": -1},
+                        {"x": 6.5, "y": -13},
+                        {"x": -6.5, "y": -13}
+                    ]
+                },
+                "timeout": "10s"
+            },
+            "rotation": {
+                "max_speed": 2,
+                "min_speed": 1,
+                "on_threshold": 0.17,
+                "timeout": "5s"
+            },
+            "rest_duration": "100ms",
+            "timeout": "30s"
+        }
+    },
+    "logging": {
+        "level": 0,
+        "directory": "logs",
+        "log_stats": false,
+        "log_wheels": false
+    },
+    "ble_device_name": "Tensa",
+    "drills_directory": "../../pkg/ai/drillsx/examples/build",
+    "audio": {
+        "sound_effects_enabled": false
+    }
+}

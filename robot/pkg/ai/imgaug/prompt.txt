@@ -1,0 +1,30 @@
+Goal: Generate ONE new tennis-court scene description to augment imagery.
+
+Output requirements:
+- Plain text only. No headings or commentary.
+- Return EXACTLY ONE scene on a single line.
+- Format exactly: lighting/time-of-day, location or backdrop, court surface/type & COLOR (assume never wet), extra atmospheric/optical details (people optional)
+- Use short, vivid phrases separated by commas. No final period.
+- Keep the line ≤ 140 characters.
+- People may be present (players, coach, spectators) but keep it realistic and non-branded; avoid logos and brand names.
+- Maintain physical realism (plausible shadows/reflections for the lighting described).
+- Do not mention wet or dry; courts are NEVER wet. Avoid: wet, damp, drizzle, rain, puddle, sheen, slick, dry.
+- Aim for novelty versus the examples and prior scenes; avoid obvious duplicates.
+
+Stylistic guidance:
+- Prefer specific lighting terms: sunny midday, warm golden hour, overcast noon, blue‑hour dusk, night under stadium floodlights,
+  bright indoor LED, dim sodium vapor, foggy dawn, marine layer, heat haze, frost, mixed HID/LED, etc.
+- Vary locations/backdrops: city park chain‑link fence, evergreen forest, mountains, beachside, urban skyline, residential homes,
+  indoor dome, warehouse gym, air‑supported bubble, rooftop court, desert park, alpine club, riverside park.
+- Vary court type and color: hardcourt any, clay (red/orange/green/gray), grass (fresh/worn).
+- Vary non‑wet conditions: freshly repainted, worn faded lines, dappled shade, fence shadow grid, leaf litter, light dust, frost in winter.
+- Extra details are optional but concise: lens flare, specular highlights, misty haze, drifting fog, long shadows, heat shimmer,
+  scoreboard spill light, polarized sky.
+
+Examples (style only; do not repeat these):
+warm golden hour, rooftop court skyline backdrop, blue hardcourt, long city shadows
+overcast noon, riverside park behind fence, green hardcourt, soft diffuse contrast
+bright indoor LED, air‑supported bubble, gray clay court, even light on players
+
+Now output exactly ONE line only, matching the format and rules above.
+

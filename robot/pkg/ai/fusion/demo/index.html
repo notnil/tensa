@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fusion Demo</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
+        canvas { border: 1px solid #ccc; background: #f9f9f9; margin-top: 20px; }
+        #legend { margin-top: 10px; display: flex; gap: 20px; }
+        .item { display: flex; align-items: center; gap: 5px; }
+        .color-box { width: 15px; height: 15px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>Location Fusion Demo</h1>
+    <div id="legend">
+        <div class="item"><div class="color-box" style="background: black"></div> Truth</div>
+        <div class="item"><div class="color-box" style="background: red"></div> Absolute (Noisy)</div>
+        <div class="item"><div class="color-box" style="background: yellow"></div> Relative (Drifting)</div>
+        <div class="item"><div class="color-box" style="background: green"></div> Fused (Result)</div>
+    </div>
+    <canvas id="court" width="800" height="600"></canvas>
+
+    <script>
+        const canvas = document.getElementById('court');
+        const ctx = canvas.getContext('2d');
+        
+        // Viewport settings
+        const scale = 20; // pixels per meter
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+
+        // Tennis Court Dimensions (in meters, matching backend)
+        const court = {
+            baseline: 11.8872,
+            serviceLine: 6.4008,
+            net: 0.0,
+            doublesX: 5.4864,
+            singlesX: 4.1148,
+            centerX: 0.0
+        };
+
+        // State history for trails
+        const history = {
+            truth: [],
+            abs: [],
+            rel: [],
+            fused: []
+        };
+        const maxHistory = 200;
+
+        const ws = new WebSocket('ws://' + window.location.host + '/ws');
+        
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            
+            if (history[data.type]) {
+                history[data.type].push(data);
+                if (history[data.type].length > maxHistory) {
+                    history[data.type].shift();
+                }
+            }
+            
+            draw();
+        };
+
+        function toScreen(x, y) {
+            return {
+                x: centerX + x * scale,
+                y: centerY - y * scale // Invert Y for cartesian
+            };
+        }
+
+        function drawPoint(x, y, color, radius=2) {
+            const p = toScreen(x, y);
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function drawArrow(x, y, rot, color, length=15) {
+            const p = toScreen(x, y);
+            // Rotation needs to handle screen Y inversion?
+            // World rot 0 = X+ (Right). Screen 0 = Right.
+            // World rot 90 = Y+ (Up). Screen Y- is Up. So screen angle = -rot.
+            const screenRot = -rot;
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p.x + Math.cos(screenRot) * length, p.y + Math.sin(screenRot) * length);
+            ctx.stroke();
+        }
+
+        function drawTrail(points, color) {
+            if (points.length < 2) return;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            const start = toScreen(points[0].x, points[0].y);
+            ctx.moveTo(start.x, start.y);
+            for (let i = 1; i < points.length; i++) {
+                const p = toScreen(points[i].x, points[i].y);
+                ctx.lineTo(p.x, p.y);
+            }
+            ctx.stroke();
+        }
+
+        function drawCourt() {
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.fillStyle = '#3a5fcd'; // Court blue
+            
+            // Outer boundary (Doubles)
+            const outerTopLeft = toScreen(-court.doublesX, court.baseline);
+            const outerBottomRight = toScreen(court.doublesX, -court.baseline);
+            const width = outerBottomRight.x - outerTopLeft.x;
+            const height = outerBottomRight.y - outerTopLeft.y;
+            
+            // Fill court
+            ctx.fillRect(outerTopLeft.x, outerTopLeft.y, width, height);
+            
+            ctx.beginPath();
+            // Outer Box
+            ctx.rect(outerTopLeft.x, outerTopLeft.y, width, height);
+            
+            // Singles Sidelines
+            const singlesLeftTop = toScreen(-court.singlesX, court.baseline);
+            const singlesLeftBottom = toScreen(-court.singlesX, -court.baseline);
+            ctx.moveTo(singlesLeftTop.x, singlesLeftTop.y);
+            ctx.lineTo(singlesLeftBottom.x, singlesLeftBottom.y);
+            
+            const singlesRightTop = toScreen(court.singlesX, court.baseline);
+            const singlesRightBottom = toScreen(court.singlesX, -court.baseline);
+            ctx.moveTo(singlesRightTop.x, singlesRightTop.y);
+            ctx.lineTo(singlesRightBottom.x, singlesRightBottom.y);
+            
+            // Service Lines
+            const serviceTopLeft = toScreen(-court.singlesX, court.serviceLine);
+            const serviceTopRight = toScreen(court.singlesX, court.serviceLine);
+            ctx.moveTo(serviceTopLeft.x, serviceTopLeft.y);
+            ctx.lineTo(serviceTopRight.x, serviceTopRight.y);
+            
+            const serviceBottomLeft = toScreen(-court.singlesX, -court.serviceLine);
+            const serviceBottomRight = toScreen(court.singlesX, -court.serviceLine);
+            ctx.moveTo(serviceBottomLeft.x, serviceBottomLeft.y);
+            ctx.lineTo(serviceBottomRight.x, serviceBottomRight.y);
+            
+            // Center Service Line
+            const centerTop = toScreen(0, court.serviceLine);
+            const centerBottom = toScreen(0, -court.serviceLine);
+            ctx.moveTo(centerTop.x, centerTop.y);
+            ctx.lineTo(centerBottom.x, centerBottom.y);
+            
+            // Net
+            const netLeft = toScreen(-court.doublesX - 1, 0); // Extend slightly
+            const netRight = toScreen(court.doublesX + 1, 0);
+            ctx.moveTo(netLeft.x, netLeft.y);
+            ctx.lineTo(netRight.x, netRight.y);
+            
+            ctx.stroke();
+            
+            // Center Marks
+            ctx.beginPath();
+            const centerMarkTop = toScreen(0, court.baseline);
+            const centerMarkTopInner = toScreen(0, court.baseline - 0.1); // Small tick
+            ctx.moveTo(centerMarkTop.x, centerMarkTop.y);
+            ctx.lineTo(centerMarkTopInner.x, centerMarkTopInner.y);
+            
+            const centerMarkBottom = toScreen(0, -court.baseline);
+            const centerMarkBottomInner = toScreen(0, -court.baseline + 0.1);
+            ctx.moveTo(centerMarkBottom.x, centerMarkBottom.y);
+            ctx.lineTo(centerMarkBottomInner.x, centerMarkBottomInner.y);
+            ctx.stroke();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            drawCourt();
+
+            // Draw Trails
+            drawTrail(history.truth, 'rgba(0,0,0,0.2)');
+            drawTrail(history.rel, 'rgba(255,255,0,0.4)');
+            drawTrail(history.fused, 'rgba(0,255,0,0.5)');
+
+            // Draw Current Points
+            const lastTruth = history.truth[history.truth.length - 1];
+            if (lastTruth) {
+                drawPoint(lastTruth.x, lastTruth.y, 'black', 3);
+                drawArrow(lastTruth.x, lastTruth.y, lastTruth.rotation, 'black');
+            }
+
+            const lastRel = history.rel[history.rel.length - 1];
+            if (lastRel) {
+                drawPoint(lastRel.x, lastRel.y, 'yellow', 3);
+            }
+            
+            // Abs points are transient, draw last few with fade
+            for (let i = 0; i < history.abs.length; i++) {
+                const p = history.abs[i];
+                const age = Date.now() - p.timestamp;
+                if (age < 1000) {
+                    const alpha = 1 - age/1000;
+                    ctx.globalAlpha = alpha;
+                    drawPoint(p.x, p.y, 'red', 4);
+                    ctx.globalAlpha = 1.0;
+                }
+            }
+
+            const lastFused = history.fused[history.fused.length - 1];
+            if (lastFused) {
+                drawPoint(lastFused.x, lastFused.y, 'green', 4);
+                drawArrow(lastFused.x, lastFused.y, lastFused.rotation, 'green', 20);
+            }
+        }
+    </script>
+</body>
+</html>
+

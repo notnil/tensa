@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Ball Detection Visualizer</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: sans-serif; }
+        #container { width: 100vw; height: 100vh; }
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 100;
+            max-width: 300px;
+        }
+        select, button {
+            width: 100%;
+            margin-top: 5px;
+            padding: 5px;
+            background: #444;
+            color: white;
+            border: 1px solid #666;
+            cursor: pointer;
+        }
+        .info { margin-top: 10px; font-size: 12px; }
+        .labeled { color: #4caf50; }
+        .unlabeled { color: #f44336; }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <h3>Ball Visualizer</h3>
+        <div>
+            <label for="frame-select">Select Frame:</label>
+            <select id="frame-select"></select>
+        </div>
+        <div class="info" id="frame-info">
+            Frame: <span id="current-frame">-</span><br>
+            Timestamp: <span id="current-ts">-</span><br>
+            Machine: <span id="machine-pos">-</span><br>
+            Status: <span id="status">-</span>
+        </div>
+        <div style="margin-top: 10px;">
+            <button id="prev-btn">Previous (A)</button>
+            <button id="next-btn">Next (D)</button>
+            <button id="play-btn">Play/Pause (Space)</button>
+        </div>
+    </div>
+    <div id="container"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // Dimensions (meters)
+        const COURT_WIDTH = 10.9728;
+        const COURT_LENGTH = 23.7744;
+        const NET_HEIGHT = 0.9144;
+        const BALL_RADIUS = 0.0335; // 6.7cm diameter
+
+        let scene, camera, renderer, controls;
+        let ballsGroup, machineMesh;
+        let frames = [];
+        let labeledTimestamps = new Set();
+        let currentFrameIdx = 0;
+        let isPlaying = false;
+        let playInterval = null;
+
+        init();
+        animate();
+        loadFrames();
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(15, 10, 15);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            document.getElementById('container').appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 20, 10);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+
+            createCourt();
+            
+            ballsGroup = new THREE.Group();
+            scene.add(ballsGroup);
+
+            // Machine marker
+            const machineHeight = 1.3; // Approx fixed height
+            const machineGeo = new THREE.BoxGeometry(0.5, machineHeight, 0.5);
+            machineGeo.translate(0, machineHeight / 2, 0); // Origin at base
+            const machineMat = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+            machineMesh = new THREE.Mesh(machineGeo, machineMat);
+            
+            // Front indicator (small white box on front side)
+            const frontGeo = new THREE.BoxGeometry(0.3, 0.2, 0.1);
+            const frontMat = new THREE.MeshLambertMaterial({ color: 0xeeeeee });
+            const frontMarker = new THREE.Mesh(frontGeo, frontMat);
+            frontMarker.position.set(0, machineHeight - 0.2, 0.25); 
+            machineMesh.add(frontMarker);
+            
+            scene.add(machineMesh);
+
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('keydown', onKeyDown);
+            document.getElementById('frame-select').addEventListener('change', (e) => {
+                currentFrameIdx = e.target.selectedIndex;
+                updateFrame();
+            });
+            document.getElementById('prev-btn').addEventListener('click', prevFrame);
+            document.getElementById('next-btn').addEventListener('click', nextFrame);
+            document.getElementById('play-btn').addEventListener('click', togglePlay);
+        }
+
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            const btn = document.getElementById('play-btn');
+            if (isPlaying) {
+                btn.innerText = "Pause (Space)";
+                playInterval = setInterval(() => {
+                    if (currentFrameIdx < frames.length - 1) {
+                        nextFrame();
+                    } else {
+                        togglePlay();
+                    }
+                }, 100);
+            } else {
+                btn.innerText = "Play (Space)";
+                clearInterval(playInterval);
+            }
+        }
+
+        function createCourt() {
+            const courtGroup = new THREE.Group();
+            
+            // Pro-style Two-Tone Colors
+            const colorInner = 0x2A6CB5; // Blue
+            const colorOuter = 0x4B8B3B; // Green
+            const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const lineWidth = 0.05;
+
+            // 1. Outer Surface (Green)
+            const outerW = COURT_WIDTH + 6;
+            const outerL = COURT_LENGTH + 6;
+            const outerGeo = new THREE.PlaneGeometry(outerW, outerL);
+            const outerMat = new THREE.MeshLambertMaterial({ color: colorOuter, side: THREE.DoubleSide });
+            const outer = new THREE.Mesh(outerGeo, outerMat);
+            outer.rotation.x = -Math.PI / 2;
+            outer.receiveShadow = true;
+            courtGroup.add(outer);
+
+            // 2. Inner Surface (Blue)
+            const innerGeo = new THREE.PlaneGeometry(COURT_WIDTH, COURT_LENGTH);
+            const innerMat = new THREE.MeshLambertMaterial({ color: colorInner, side: THREE.DoubleSide });
+            const inner = new THREE.Mesh(innerGeo, innerMat);
+            inner.rotation.x = -Math.PI / 2;
+            inner.position.y = 0.005; // Slightly above outer
+            inner.receiveShadow = true;
+            courtGroup.add(inner);
+
+            const createLine = (w, l, x, z) => {
+                const geo = new THREE.PlaneGeometry(w, l);
+                const mesh = new THREE.Mesh(geo, lineMat);
+                mesh.rotation.x = -Math.PI / 2;
+                mesh.position.set(x, 0.01, z);
+                courtGroup.add(mesh);
+            };
+
+            // Lines Dimensions (Meters)
+            const halfW = COURT_WIDTH / 2;
+            const halfL = COURT_LENGTH / 2;
+            const serviceLineDist = 6.4008;
+            const doublesSideW = 1.3716;
+            const singlesHalfW = (COURT_WIDTH - (doublesSideW * 2)) / 2;
+
+            // Boundary lines
+            createLine(COURT_WIDTH, lineWidth, 0, halfL);   // Baseline Far
+            createLine(COURT_WIDTH, lineWidth, 0, -halfL);  // Baseline Near
+            createLine(lineWidth, COURT_LENGTH, halfW, 0);  // Sideline Right
+            createLine(lineWidth, COURT_LENGTH, -halfW, 0); // Sideline Left
+
+            // Singles Sidelines
+            createLine(lineWidth, COURT_LENGTH, singlesHalfW, 0);
+            createLine(lineWidth, COURT_LENGTH, -singlesHalfW, 0);
+
+            // Service Lines
+            createLine(singlesHalfW * 2, lineWidth, 0, serviceLineDist);
+            createLine(singlesHalfW * 2, lineWidth, 0, -serviceLineDist);
+
+            // Center Service Line
+            createLine(lineWidth, serviceLineDist * 2, 0, 0);
+
+            // Center Mark (small tick on baseline)
+            createLine(lineWidth, 0.2, 0, halfL - 0.1);
+            createLine(lineWidth, 0.2, 0, -halfL + 0.1);
+
+            // Net Posts
+            const postHeight = 1.07;
+            const postGeo = new THREE.CylinderGeometry(0.04, 0.04, postHeight);
+            const postMat = new THREE.MeshLambertMaterial({ color: 0x222222 });
+            
+            const postL = new THREE.Mesh(postGeo, postMat);
+            postL.position.set(-halfW - 0.1, postHeight / 2, 0);
+            courtGroup.add(postL);
+            
+            const postR = new THREE.Mesh(postGeo, postMat);
+            postR.position.set(halfW + 0.1, postHeight / 2, 0);
+            courtGroup.add(postR);
+
+            // Net - use BoxGeometry for a simple vertical wall
+            const netWidth = COURT_WIDTH + 0.2;
+            const netHeight = 0.914;
+            const netThickness = 0.02;
+            const netGeo = new THREE.BoxGeometry(netWidth, netHeight, netThickness);
+            const netMat = new THREE.MeshLambertMaterial({ 
+                color: 0x333333, 
+                transparent: true, 
+                opacity: 0.6
+            });
+            const net = new THREE.Mesh(netGeo, netMat);
+            net.position.set(0, netHeight / 2, 0);
+            courtGroup.add(net);
+
+            // Net Top Tape (White box on top)
+            const tapeGeo = new THREE.BoxGeometry(netWidth, 0.06, 0.04);
+            const tapeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const tape = new THREE.Mesh(tapeGeo, tapeMat);
+            tape.position.set(0, netHeight, 0);
+            courtGroup.add(tape);
+
+            scene.add(courtGroup);
+        }
+
+        function loadFrames() {
+            fetch('/api/frames')
+                .then(res => res.json())
+                .then(data => {
+                    frames = data.frames;
+                    labeledTimestamps = new Set(data.labeled_timestamps);
+                    const select = document.getElementById('frame-select');
+                    frames.forEach((f, i) => {
+                        const opt = document.createElement('option');
+                        opt.value = f;
+                        opt.text = `Frame ${i} (${f})`;
+                        if (labeledTimestamps.has(f)) {
+                            opt.classList.add('labeled');
+                            opt.text += " [Labeled]";
+                        }
+                        select.add(opt);
+                    });
+                    if (frames.length > 0) updateFrame();
+                });
+        }
+
+        function updateFrame() {
+            if (frames.length === 0) return;
+            const ts = frames[currentFrameIdx];
+            document.getElementById('current-frame').innerText = currentFrameIdx;
+            document.getElementById('current-ts').innerText = ts;
+            document.getElementById('frame-select').selectedIndex = currentFrameIdx;
+
+            fetch(`/api/detections/${ts}`)
+                .then(res => res.json())
+                .then(data => {
+                    ballsGroup.clear();
+                    const statusEl = document.getElementById('status');
+                    
+                    if (data.success) {
+                        statusEl.innerText = "OK";
+                        statusEl.className = "labeled";
+                        
+                        // Update machine position
+                        const p = data.pose;
+                        // Center on X,Y and place base on floor
+                        machineMesh.position.set(p.x, 0, p.y);
+                        
+                        // Facing logic: 90 deg yaw is +Y (forward), which is rotation 0 in Three.js
+                        machineMesh.rotation.y = Math.radians(90 - p.yaw);
+                        document.getElementById('machine-pos').innerText = `${p.x.toFixed(2)}, ${p.y.toFixed(2)}, alt: ${p.z.toFixed(2)}, yaw: ${p.yaw.toFixed(1)}°`;
+
+                        // Add balls
+                        data.detections.forEach(det => {
+                            const pos = det.position_world;
+                            const ballGeo = new THREE.SphereGeometry(BALL_RADIUS);
+                            const ballMat = new THREE.MeshLambertMaterial({ color: 0xffff00 });
+                            const ball = new THREE.Mesh(ballGeo, ballMat);
+                            ball.position.set(pos.x, pos.z, pos.y);
+                            ball.castShadow = true;
+                            ballsGroup.add(ball);
+                        });
+                    } else {
+                        statusEl.innerText = "Unlabeled";
+                        statusEl.className = "unlabeled";
+                        document.getElementById('machine-pos').innerText = "-";
+                        machineMesh.position.set(0, -10, 0); // Hide machine
+                    }
+                });
+        }
+
+        function prevFrame() {
+            if (currentFrameIdx > 0) {
+                currentFrameIdx--;
+                updateFrame();
+            }
+        }
+
+        function nextFrame() {
+            if (currentFrameIdx < frames.length - 1) {
+                currentFrameIdx++;
+                updateFrame();
+            }
+        }
+
+        function onKeyDown(e) {
+            if (e.key === 'a' || e.key === 'A') prevFrame();
+            if (e.key === 'd' || e.key === 'D') nextFrame();
+            if (e.key === ' ') {
+                e.preventDefault();
+                togglePlay();
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        Math.radians = function(degrees) {
+            return degrees * Math.PI / 180;
+        };
+    </script>
+</body>
+</html>

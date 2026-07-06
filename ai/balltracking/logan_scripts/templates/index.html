@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ZED N-Point Localizer</title>
+    <style>
+        body { 
+            font-family: sans-serif; 
+            background: #111; 
+            color: #eee; 
+            margin: 0; 
+            display: flex; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+        
+        #main-layout { 
+            display: flex; 
+            width: 100%; 
+            height: 100%; 
+        }
+        
+        #left-col { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            background: #000;
+            position: relative;
+        }
+        
+        #right-col { 
+            width: 320px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+            background: #222; 
+            padding: 10px; 
+            border-left: 1px solid #333;
+            overflow-y: auto;
+            font-size: 0.9em;
+        }
+        
+        #video-container { 
+            flex: 1; 
+            position: relative; 
+            cursor: crosshair; 
+            background: #000; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        #video-feed { 
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain;
+        }
+        
+        #video-overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; 
+            color: white; font-size: 2em; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.2s;
+            z-index: 20;
+        }
+        #video-container.loading #video-overlay { opacity: 1; }
+        
+        #controls-bar { 
+            background: #222; 
+            padding: 8px 15px; 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            border-top: 1px solid #333;
+        }
+        
+        #scrubber { flex-grow: 1; height: 8px; cursor: pointer; accent-color: #007bff; }
+        
+        .panel { background: #333; padding: 12px; border-radius: 6px; }
+        .info-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .data-column { display: flex; flex-direction: column; gap: 2px; }
+        .label { color: #aaa; font-size: 0.7em; font-weight: bold; text-transform: uppercase; }
+        .value { color: #4dabff; font-family: monospace; font-size: 0.9em; }
+        
+        .btn-group { display: flex; gap: 5px; width: 100%; margin-top: 8px; }
+        button { flex: 1; padding: 8px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; font-size: 0.85em; }
+        button:disabled { background: #444 !important; color: #777 !important; cursor: not-allowed; }
+        
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-secondary { background: #555; color: white; }
+        .btn-warning { background: #f39c12; color: white; }
+        .btn-sm { padding: 4px 8px; font-size: 0.75em; }
+        
+        #status { font-weight: bold; color: #ccc; font-size: 0.85em; text-align: center; padding: 6px; background: #2a2a2a; border-radius: 4px; margin-bottom: 5px; }
+        #status.success { background: #1b4332; color: #8fce00; }
+        #status.warning { background: #4a3701; color: #ffcc00; }
+        #status.error { background: #4a0e0e; color: #ff5f5f; }
+        
+        select { background: #444; color: #eee; padding: 5px; font-size: 0.85em; border-radius: 4px; border: 1px solid #555; width: 100%; }
+        
+        #points-list { max-height: 200px; overflow-y: auto; margin-bottom: 10px; border: 1px solid #444; border-radius: 4px; padding: 2px; }
+        
+        .point-display { background: #2a2a2a; padding: 5px; border-radius: 4px; margin: 2px 0; font-size: 0.8em; display: flex; align-items: center; gap: 6px; }
+        .point-display.active { border: 1px solid #007bff; }
+        .point-display .point-color { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+        .point-display .point-info { flex-grow: 1; overflow: hidden; }
+        .point-display .point-info-text { font-family: monospace; font-size: 0.75em; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .point-display select { width: 80px; padding: 2px; font-size: 0.8em; }
+        .point-display .remove-btn { background: #dc3545; color: white; border: none; border-radius: 3px; padding: 1px 6px; cursor: pointer; font-size: 0.75em; flex-shrink: 0; }
+        
+        #csv-table-container { flex-grow: 1; overflow-y: auto; background: #1a1a1a; border: 1px solid #333; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.75em; }
+        th { position: sticky; top: 0; background: #333; text-align: left; padding: 5px; border-bottom: 1px solid #444; z-index: 10; }
+        td { padding: 4px 6px; border-bottom: 1px solid #222; }
+        tr:hover { background-color: #2a2a2a; cursor: pointer; }
+        tr.active { background-color: #004085; }
+        
+        .click-marker { position: absolute; width: 10px; height: 10px; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; border: 2px solid white; z-index: 30; }
+        #markers-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 25; }
+        
+        .tab-group { display: flex; border-bottom: 1px solid #444; margin-bottom: 5px; }
+        .tab-btn { padding: 6px 10px; border: none; background: #333; color: #aaa; cursor: pointer; font-weight: bold; border-radius: 4px 4px 0 0; margin-right: 2px; flex: 1; }
+        .tab-btn.active { background: #007bff; color: white; }
+        .tab-content { display: none; height: 100%; flex-direction: column; overflow: hidden; }
+        .tab-content.active { display: flex; }
+
+        h3 { margin: 10px 0 5px 0; font-size: 0.9em; text-transform: uppercase; color: #888; }
+        
+        #result-display { margin-top: 5px; padding: 8px; background: #1e3a24; border-radius: 4px; border: 1px solid #2d5a35; font-size: 0.85em; }
+    </style>
+</head>
+<body>
+    <div id="main-layout">
+        <div id="left-col">
+            <div id="video-container">
+                <img id="video-feed" src="/video_feed" alt="Video Feed">
+                <div id="video-overlay">Loading...</div>
+                <div id="markers-container"></div>
+            </div>
+
+            <div id="controls-bar">
+                <button id="prev-btn" class="btn-secondary" style="flex: 0 0 40px;">&larr;</button>
+                <input type="range" id="scrubber" min="0" max="{{ total_frames - 1 }}" value="0">
+                <button id="next-btn" class="btn-secondary" style="flex: 0 0 40px;">&rarr;</button>
+                <div style="display: flex; gap: 5px; align-items: center; margin-left: 10px;">
+                    <input type="number" id="goto-idx" min="0" max="{{ total_frames - 1 }}" value="0" style="width: 70px; padding: 5px; background: #444; color: #eee; border: 1px solid #555; border-radius: 4px;">
+                    <button id="goto-btn" class="btn-primary" style="flex: none; padding: 5px 10px;">GO</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="right-col">
+            <div class="tab-group">
+                <button class="tab-btn active" onclick="showTab('labeler-tab')">Labeler</button>
+                <button class="tab-btn" onclick="showTab('saved-tab')">Saved</button>
+            </div>
+
+            <div id="labeler-tab" class="tab-content active">
+                <div id="status">Click image to add point</div>
+                
+                <div class="panel">
+                    <div class="info-row">
+                        <div class="data-column">
+                            <span class="label">Frame</span>
+                            <span id="frame-idx-display" class="value">0 / {{ total_frames - 1 }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="data-column" style="width: 100%;">
+                            <span class="label">Profile</span>
+                            <select id="profile-select">
+                                {% for p in presets %}
+                                <option value="{{ p }}">{{ p }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="info-row" style="margin-top: 5px;">
+                        <div class="data-column" style="width: 100%;">
+                            <span class="label">Frame Step (every Nth)</span>
+                            <select id="frame-step-select">
+                                <option value="1">1 (every frame)</option>
+                                <option value="2">2 (every other)</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="info-row" style="margin-top: 5px;">
+                        <div class="data-column" style="width: 100%;">
+                            <span class="label">Keypoint</span>
+                            <select id="new-point-kp">
+                                {% for kp in keypoints %}
+                                <option value="{{ kp }}">{{ kp }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <h3>Points</h3>
+                    <div id="points-list"></div>
+                    
+                    <div id="result-display" style="display: none;">
+                        <span class="label">Position:</span> <span id="result-pos" class="value"></span><br>
+                        <span class="label">Rotation:</span> <span id="result-yaw" class="value"></span>
+                        <div id="result-error" style="font-size: 0.75em; color: #aaa; margin-top: 4px;"></div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button id="compute-btn" class="btn-primary" disabled>COMPUTE</button>
+                        <button id="save-btn" class="btn-success" disabled>SAVE (Space)</button>
+                    </div>
+                    <div class="btn-group">
+                        <button id="clear-btn" class="btn-warning">CLEAR</button>
+                        <button id="remove-btn" class="btn-danger" disabled>REMOVE</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="saved-tab" class="tab-content">
+                <div id="csv-table-container">
+                    <table id="csv-table">
+                        <thead>
+                            <tr>
+                                <th>Frame</th>
+                                <th>Pts</th>
+                                <th>X</th>
+                                <th>Y</th>
+                                <th>Rot</th>
+                                <th>Err</th>
+                            </tr>
+                        </thead>
+                        <tbody id="csv-body"></tbody>
+                    </table>
+                </div>
+                <div class="btn-group" style="padding: 10px 0;">
+                    <button id="view-3d-btn" class="btn-success" onclick="window.open('/visualizer', '_blank')">3D View</button>
+                    <button id="export-btn" class="btn-primary">JSONL</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const scrubber = document.getElementById('scrubber');
+        const frameDisplay = document.getElementById('frame-idx-display');
+        const videoFeed = document.getElementById('video-feed');
+        const videoContainer = document.getElementById('video-container');
+        const markersContainer = document.getElementById('markers-container');
+        const saveBtn = document.getElementById('save-btn');
+        const computeBtn = document.getElementById('compute-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const removeBtn = document.getElementById('remove-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const gotoIdx = document.getElementById('goto-idx');
+        const gotoBtn = document.getElementById('goto-btn');
+        const exportBtn = document.getElementById('export-btn');
+        const status = document.getElementById('status');
+        const pointsList = document.getElementById('points-list');
+        const newPointKp = document.getElementById('new-point-kp');
+        const profileSelect = document.getElementById('profile-select');
+        
+        const resultDisplay = document.getElementById('result-display');
+        const resultPos = document.getElementById('result-pos');
+        const resultYaw = document.getElementById('result-yaw');
+        const resultError = document.getElementById('result-error');
+        const csvBody = document.getElementById('csv-body');
+        const frameStepSelect = document.getElementById('frame-step-select');
+
+        const POINT_COLORS = [
+            '#ff4d4d', '#33ff33', '#3399ff', '#ffff33', '#ff33ff',
+            '#33ffff', '#ff9933', '#9933ff', '#99ff33', '#ff3399'
+        ];
+
+        let isSyncing = false;
+        const totalFrames = {{ total_frames }};
+        let currentLabels = [];
+        
+        let points = [];
+        let computedResult = null;
+        let nextPointId = 1;
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('onclick').includes(tabId));
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.toggle('active', content.id === tabId);
+            });
+        }
+
+        function setStatus(msg, type) {
+            status.innerText = msg;
+            status.className = type || '';
+        }
+
+        function getPointColor(index) {
+            return POINT_COLORS[index % POINT_COLORS.length];
+        }
+
+        function renderPoints() {
+            pointsList.innerHTML = '';
+            markersContainer.innerHTML = '';
+            
+            const rect = videoFeed.getBoundingClientRect();
+            const containerRect = videoContainer.getBoundingClientRect();
+            
+            // Calculate offsets of the image relative to the markers-container (video-container)
+            const offsetX = rect.left - containerRect.left;
+            const offsetY = rect.top - containerRect.top;
+
+            points.forEach((pt, idx) => {
+                const color = getPointColor(idx);
+                const div = document.createElement('div');
+                div.className = 'point-display';
+                div.innerHTML = `
+                    <div class="point-color" style="background: ${color};"></div>
+                    <select class="point-kp" data-idx="${idx}">
+                        ${Array.from(newPointKp.options).map(opt => 
+                            `<option value="${opt.value}" ${opt.value === pt.kp ? 'selected' : ''}>${opt.value}</option>`
+                        ).join('')}
+                    </select>
+                    <div class="point-info">
+                        <div class="point-info-text">${pt.cam.toUpperCase()}: ${pt.vec.map(v => v.toFixed(2)).join(',')}</div>
+                    </div>
+                    <button class="remove-btn" data-idx="${idx}">X</button>
+                `;
+                pointsList.appendChild(div);
+                
+                if (pt.nx !== undefined && pt.ny !== undefined) {
+                    const marker = document.createElement('div');
+                    marker.className = 'click-marker';
+                    marker.style.background = color;
+                    // Position marker based on normalized coordinates and current displayed image size
+                    marker.style.left = (pt.nx * rect.width + offsetX) + 'px';
+                    marker.style.top = (pt.ny * rect.height + offsetY) + 'px';
+                    markersContainer.appendChild(marker);
+                }
+            });
+            
+            pointsList.querySelectorAll('.point-kp').forEach(select => {
+                select.addEventListener('change', (e) => {
+                    const idx = parseInt(e.target.dataset.idx);
+                    points[idx].kp = e.target.value;
+                    computedResult = null;
+                    validateState();
+                });
+            });
+            
+            pointsList.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(e.target.dataset.idx);
+                    points.splice(idx, 1);
+                    computedResult = null;
+                    renderPoints();
+                    validateState();
+                });
+            });
+            
+            validateState();
+        }
+
+        function validateState() {
+            const validPoints = points.filter(p => p.vec !== null);
+            computeBtn.disabled = validPoints.length < 2;
+            saveBtn.disabled = !computedResult;
+        }
+
+        function updateLabelsTable() {
+            fetch('/api/labels')
+                .then(res => res.json())
+                .then(data => {
+                    currentLabels = data.labels;
+                    csvBody.innerHTML = '';
+                    currentLabels.forEach(label => {
+                        const tr = document.createElement('tr');
+                        if (label.frame_idx == scrubber.value) tr.className = 'active';
+                        const pose = label.machine_pose;
+                        tr.innerHTML = `
+                            <td>${label.frame_idx}</td>
+                            <td>${label.points ? label.points.length : 0}</td>
+                            <td>${pose.x.toFixed(1)}</td>
+                            <td>${pose.y.toFixed(1)}</td>
+                            <td>${(pose.yaw || 0).toFixed(0)}°</td>
+                            <td>${(label.verification_error || 0).toFixed(2)}</td>
+                        `;
+                        tr.onclick = () => {
+                            scrubber.value = label.frame_idx;
+                            scrubber.oninput();
+                        };
+                        csvBody.appendChild(tr);
+                    });
+                    const hasLabel = currentLabels.some(l => l.frame_idx == scrubber.value);
+                    removeBtn.disabled = !hasLabel;
+                });
+        }
+
+        function clearState() {
+            points = [];
+            computedResult = null;
+            resultDisplay.style.display = 'none';
+            renderPoints();
+            setStatus('Click image to add point');
+        }
+
+        scrubber.oninput = function() {
+            const val = this.value;
+            frameDisplay.innerText = val + " / " + (totalFrames - 1);
+            gotoIdx.value = val;
+            if (!isSyncing) {
+                isSyncing = true;
+                videoContainer.classList.add('loading');
+            }
+            clearState();
+            fetch('/api/seek/' + val)
+                .then(res => res.json())
+                .then(data => {
+                    videoFeed.src = '/video_feed?' + Date.now();
+                    isSyncing = false;
+                    videoContainer.classList.remove('loading');
+                    updateLabelsTable();
+                });
+        };
+
+        gotoBtn.onclick = function() {
+            let val = parseInt(gotoIdx.value);
+            if (isNaN(val)) return;
+            val = Math.max(0, Math.min(totalFrames - 1, val));
+            scrubber.value = val;
+            scrubber.oninput();
+        };
+
+        gotoIdx.onkeydown = function(e) {
+            if (e.key === "Enter") {
+                gotoBtn.click();
+                gotoIdx.blur();
+            }
+            e.stopPropagation();
+        };
+
+        videoFeed.onclick = function(e) {
+            const rect = videoFeed.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const nx = x / rect.width;
+            const ny = y / rect.height;
+            
+            setStatus('Getting depth...', 'warning');
+            fetch('/api/get_vec', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nx, ny })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) {
+                    setStatus('Error: ' + data.error, 'error');
+                    return;
+                }
+                const newPoint = {
+                    id: nextPointId++,
+                    cam: data.camera,
+                    kp: newPointKp.value,
+                    vec: data.vec,
+                    nx: nx,
+                    ny: ny
+                };
+                points.push(newPoint);
+                computedResult = null;
+                renderPoints();
+                setStatus(`Point ${points.length} added`, 'success');
+            })
+            .catch(err => setStatus('Connection error', 'error'));
+        };
+
+        computeBtn.onclick = function() {
+            const validPoints = points.filter(p => p.vec !== null);
+            setStatus('Computing...', 'warning');
+            const pointsData = validPoints.map(p => ({ cam: p.cam, kp: p.kp, vec: p.vec }));
+            fetch('/api/compute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ points: pointsData })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) {
+                    setStatus('Error: ' + data.error, 'error');
+                    return;
+                }
+                const result = data.result;
+                if (result.status === 'complete') {
+                    resultPos.innerText = `${result.machine_position.x.toFixed(2)}, ${result.machine_position.y.toFixed(2)}, ${result.machine_position.z.toFixed(2)}`;
+                    resultYaw.innerText = `${result.machine_yaw_deg.toFixed(1)}°`;
+                    resultError.innerText = `RMSE: ${result.verification_error.toFixed(3)}m`;
+                    resultDisplay.style.display = 'block';
+                    computedResult = result;
+                    saveBtn.disabled = false;
+                    setStatus('Pose computed!', 'success');
+                } else {
+                    setStatus('Error: ' + result.message, 'error');
+                }
+            });
+        };
+
+        saveBtn.onclick = function() {
+            if (!computedResult) return;
+            const pointsData = points.map(p => ({ cam: p.cam, kp: p.kp, vec: p.vec }));
+            setStatus('Saving...', 'warning');
+            fetch('/api/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    frame_idx: parseInt(scrubber.value),
+                    points: pointsData,
+                    machine_position: computedResult.machine_position,
+                    machine_yaw_deg: computedResult.machine_yaw_deg,
+                    verification_error: computedResult.verification_error
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    setStatus('SAVED!', 'success');
+                    updateLabelsTable();
+                    setTimeout(() => nextBtn.click(), 300);
+                } else {
+                    setStatus('Save failed', 'error');
+                }
+            });
+        };
+
+        clearBtn.onclick = clearState;
+
+        removeBtn.onclick = function() {
+            fetch('/api/remove/' + scrubber.value, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        setStatus('Removed', 'warning');
+                        updateLabelsTable();
+                    }
+                });
+        };
+
+        function getFrameStep() { return parseInt(frameStepSelect.value) || 1; }
+        prevBtn.onclick = () => { scrubber.value = Math.max(0, parseInt(scrubber.value) - getFrameStep()); scrubber.oninput(); };
+        nextBtn.onclick = () => { scrubber.value = Math.min(totalFrames - 1, parseInt(scrubber.value) + getFrameStep()); scrubber.oninput(); };
+        exportBtn.onclick = () => { window.location.href = '/api/export'; };
+
+        document.onkeydown = function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            if (e.key === "ArrowLeft" || e.key === ",") prevBtn.click();
+            else if (e.key === "ArrowRight" || e.key === ".") nextBtn.click();
+            else if (e.key === " " || e.key === "Enter") {
+                if (!saveBtn.disabled) { e.preventDefault(); saveBtn.click(); }
+                else if (!computeBtn.disabled) { e.preventDefault(); computeBtn.click(); }
+                else nextBtn.click();
+            } else if (e.key === "c" || e.key === "C") clearBtn.click();
+            else if (e.key === "r" || e.key === "R") { if (!removeBtn.disabled) removeBtn.click(); }
+            else if (e.key === "Backspace") { if (points.length > 0) { points.pop(); computedResult = null; renderPoints(); } }
+        };
+
+        profileSelect.onchange = function() {
+            fetch('/api/preset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ preset: this.value })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    setStatus('Profile: ' + profileSelect.value, 'success');
+                    if (points.length >= 2) computeBtn.click();
+                }
+            });
+        };
+
+        window.addEventListener('resize', renderPoints);
+        updateLabelsTable();
+    </script>
+</body>
+</html>

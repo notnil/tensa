@@ -1,0 +1,48 @@
+{
+  "config": {
+    "elementaryStreams": [
+      {
+        "key": "video_1080p",
+        "videoStream": {
+          "h264": {
+            "heightPixels": 1920,
+            "widthPixels": 1080,
+            "bitrateBps": 4500000,
+            "frameRate": 30,
+            "gopDuration": "3s",
+            "profile": "high",
+            "bFrameCount": 3
+          }
+        }
+      },
+      {
+        "key": "video_720p",
+        "videoStream": {
+          "h264": {
+            "heightPixels": 1280,
+            "widthPixels": 720,
+            "bitrateBps": 2500000,
+            "frameRate": 30,
+            "gopDuration": "3s",
+            "profile": "high",
+            "bFrameCount": 3
+          }
+        }
+      },
+      {
+        "key": "audio_aac",
+        "audioStream": {
+          "codec": "aac",
+          "bitrateBps": 128000
+        }
+      }
+    ],
+    "muxStreams": [
+      { "key": "hls_1080p", "container": "ts", "elementaryStreams": ["video_1080p", "audio_aac"] },
+      { "key": "hls_720p",  "container": "ts", "elementaryStreams": ["video_720p",  "audio_aac"] }
+    ],
+    "manifests": [
+      { "fileName": "index.m3u8", "type": "HLS", "muxStreams": ["hls_1080p", "hls_720p"] }
+    ]
+  }
+}

@@ -1,0 +1,4 @@
+path: /home/jjhbarkeywolf/tensa-ml/training/ball_detector_single_frame/sam3_output/yolo_dataset
+names: ["tennis ball"]
+train: images/train
+val: images/val
