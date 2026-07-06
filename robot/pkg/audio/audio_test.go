@@ -1,3 +1,5 @@
+//go:build hardware
+
 package audio_test
 
 import (
