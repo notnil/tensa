@@ -6,13 +6,11 @@
 
 Tensa is an autonomous tennis robot that moves around the court on a mecanum drive base, localizes itself against tennis-court geometry, tracks balls and players with ZED stereo cameras, and drives a programmable throw system for repeatable shots from a compact mobile platform.
 
-This repo is a curated engineering snapshot of the AI, robot-control, firmware, and hardware work. Old experiments, private deployment scripts, network credentials, large model weights, raw datasets, generated vendor trees, and machine-specific setup files were removed.
+This repo is a curated engineering snapshot of the AI, robot-control, firmware, and hardware work.
 
 ## Scope
 
 The code is useful for understanding the architecture and implementation direction, but reproducing the full robot requires hardware, model weights, calibration data, and ZED recordings that are intentionally not included.
-
-![Physics-refined ball trajectory from multi-camera ZED footage](assets/ai/stereo-triangulation.png)
 
 ## Highlights
 
