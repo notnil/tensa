@@ -10,7 +10,7 @@ This directory contains the Go control stack that ran on the Jetson-class robot 
 - `pkg/tennis`: court geometry helpers used by navigation and drill targeting.
 - `pkg/pubsubx` and `pkg/metrics`: lightweight stream plumbing used between perception, control, and UI layers.
 
-The production deployment files from the original private repo were intentionally omitted or replaced. They contained machine-specific network settings, internal registry paths, and developer workstation assumptions that are not useful in a public portfolio repo.
+The production deployment files from the original private repo were intentionally omitted or replaced. They contained machine-specific network settings, internal registry paths, and developer workstation assumptions that are not useful in a public engineering repo.
 
 ## Build
 
