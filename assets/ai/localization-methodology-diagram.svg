@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc" viewBox="0 0 1400 780">
+  <title id="title">Tensa localization methodology diagram</title>
+  <desc id="desc">Conceptual flow from ZED camera images through court keypoints, camera geometry, pose solving, and court-space robot pose.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f7faf8; }
+      .panel { fill: #ffffff; stroke: #cdd8d2; stroke-width: 2; }
+      .box { fill: #f0f7f4; stroke: #79a695; stroke-width: 2; }
+      .box2 { fill: #eef5ff; stroke: #6d93c8; stroke-width: 2; }
+      .court { fill: #2f8a50; stroke: #1d5e34; stroke-width: 3; }
+      .court-line { stroke: #ffffff; stroke-width: 5; fill: none; stroke-linecap: round; }
+      .ray { stroke: #1f6f88; stroke-width: 3; stroke-dasharray: 8 8; fill: none; }
+      .arrow { stroke: #37564a; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .label { fill: #1d2b25; font-size: 26px; font-weight: 700; }
+      .small { fill: #40584e; font-size: 18px; }
+      .tiny { fill: #40584e; font-size: 15px; }
+      .mono { fill: #20332b; font-size: 18px; }
+      .accent { fill: #1f6f88; }
+      .keypoint { fill: #ffd84d; stroke: #664f00; stroke-width: 2; }
+      .robot { fill: #ffffff; stroke: #263b33; stroke-width: 3; }
+      .camera { fill: #263b33; }
+      .wheel { fill: #384940; }
+    </style>
+    <marker id="arrowhead" markerWidth="12" markerHeight="9" refX="10" refY="4.5" orient="auto">
+      <path d="M 0 0 L 12 4.5 L 0 9 z" fill="#37564a"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1400" height="780"/>
+
+  <text class="label" x="60" y="70">Localization turns camera observations into a court pose</text>
+  <text class="small" x="60" y="106">The robot can move, track balls, and aim throws once every subsystem agrees on court coordinates.</text>
+
+  <rect class="panel" x="50" y="145" width="515" height="565" rx="18"/>
+  <text class="label" x="85" y="190">Image-space inputs</text>
+  <text class="small" x="85" y="220">ZED stereo cameras see court lines and keypoints.</text>
+
+  <rect class="box2" x="85" y="255" width="190" height="118" rx="14"/>
+  <text class="small" x="110" y="290">Front camera</text>
+  <line x1="110" y1="330" x2="250" y2="280" stroke="#6d93c8" stroke-width="4"/>
+  <line x1="110" y1="345" x2="250" y2="345" stroke="#6d93c8" stroke-width="4"/>
+  <circle class="keypoint" cx="230" cy="292" r="8"/>
+  <circle class="keypoint" cx="188" cy="345" r="8"/>
+
+  <rect class="box2" x="330" y="255" width="190" height="118" rx="14"/>
+  <text class="small" x="355" y="290">Side camera</text>
+  <line x1="355" y1="345" x2="500" y2="305" stroke="#6d93c8" stroke-width="4"/>
+  <line x1="355" y1="318" x2="500" y2="360" stroke="#6d93c8" stroke-width="4"/>
+  <circle class="keypoint" cx="455" cy="330" r="8"/>
+  <circle class="keypoint" cx="392" cy="336" r="8"/>
+
+  <rect class="box" x="85" y="425" width="435" height="220" rx="16"/>
+  <text class="small" x="115" y="465">Known calibration and geometry</text>
+  <text class="mono" x="115" y="505">camera intrinsics: fx, fy, cx, cy</text>
+  <text class="mono" x="115" y="538">camera extrinsics: camera to robot</text>
+  <text class="mono" x="115" y="571">court model: lines and keypoints</text>
+  <text class="mono" x="115" y="604">clicked or detected correspondences</text>
+
+  <path class="arrow" d="M 565 425 C 630 425, 650 425, 705 425"/>
+
+  <rect class="panel" x="705" y="145" width="300" height="565" rx="18"/>
+  <text class="label" x="740" y="190">Pose solver</text>
+  <text class="small" x="740" y="220">Find X, Y, and yaw</text>
+  <text class="small" x="740" y="246">that best align observations</text>
+  <text class="small" x="740" y="272">with the court.</text>
+
+  <rect class="box" x="750" y="280" width="210" height="95" rx="14"/>
+  <text class="small" x="780" y="318">1. Recover rays</text>
+  <text class="tiny" x="780" y="346">pixels to 3D vectors</text>
+
+  <path class="arrow" d="M 855 385 L 855 435"/>
+
+  <rect class="box" x="750" y="445" width="210" height="95" rx="14"/>
+  <text class="small" x="780" y="483">2. Transform</text>
+  <text class="tiny" x="780" y="511">camera to robot frame</text>
+
+  <path class="arrow" d="M 855 550 L 855 595"/>
+
+  <rect class="box" x="750" y="605" width="210" height="65" rx="14"/>
+  <text class="small" x="780" y="645">3. Least squares</text>
+
+  <path class="arrow" d="M 1005 425 C 1050 425, 1080 425, 1125 425"/>
+
+  <rect class="panel" x="1125" y="145" width="225" height="565" rx="18"/>
+  <text class="label" x="1160" y="190">Court pose</text>
+  <text class="small" x="1160" y="220">A shared frame for</text>
+  <text class="small" x="1160" y="246">movement, tracking,</text>
+  <text class="small" x="1160" y="272">and targeting.</text>
+
+  <g transform="translate(1168 285)">
+    <rect class="court" x="0" y="0" width="142" height="300" rx="8"/>
+    <line class="court-line" x1="71" y1="0" x2="71" y2="300"/>
+    <line class="court-line" x1="0" y1="150" x2="142" y2="150"/>
+    <rect class="court-line" x="20" y="30" width="102" height="240"/>
+    <line class="court-line" x1="20" y1="90" x2="122" y2="90"/>
+    <line class="court-line" x1="20" y1="210" x2="122" y2="210"/>
+    <circle class="keypoint" cx="71" cy="150" r="7"/>
+    <circle class="keypoint" cx="20" cy="30" r="7"/>
+    <circle class="keypoint" cx="122" cy="270" r="7"/>
+
+    <g transform="translate(88 222) rotate(-28)">
+      <rect class="robot" x="-17" y="-28" width="34" height="56" rx="6"/>
+      <rect class="camera" x="-10" y="-38" width="20" height="13" rx="3"/>
+      <circle class="wheel" cx="-20" cy="-20" r="6"/>
+      <circle class="wheel" cx="20" cy="-20" r="6"/>
+      <circle class="wheel" cx="-20" cy="20" r="6"/>
+      <circle class="wheel" cx="20" cy="20" r="6"/>
+    </g>
+    <path class="ray" d="M 88 222 L 71 150"/>
+    <path class="ray" d="M 88 222 L 122 270"/>
+  </g>
+
+  <rect class="box2" x="1155" y="620" width="165" height="55" rx="12"/>
+  <text class="mono" x="1178" y="654">X, Y, yaw</text>
+
+  <text class="tiny" x="80" y="748">Output: court-frame robot pose used by ball tracking, player tracking, mecanum navigation, drill logic, and throw targeting.</text>
+</svg>

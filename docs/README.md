@@ -18,8 +18,9 @@ package-level API details.
 
 | Asset | What it shows |
 |-------|---------------|
-| [`assets/hero/tensa-hero-movement.gif`](../assets/hero/tensa-hero-movement.gif) | Animated README hero showing the robot moving on court. |
+| [`assets/hero/tensa-hero-movement.webp`](../assets/hero/tensa-hero-movement.webp) | Animated README hero showing the robot moving on court. |
 | [`assets/hero/tensa-hero-movement.mp4`](../assets/hero/tensa-hero-movement.mp4) | Full MP4 version of the movement hero. |
+| [`assets/ai/localization-methodology-diagram.svg`](../assets/ai/localization-methodology-diagram.svg) | Conceptual localization flow from camera observations to court pose. |
 | [`assets/ai/localization-camera-to-court.jpg`](../assets/ai/localization-camera-to-court.jpg) | Multi-camera localization inputs beside the solved court pose. |
 | [`assets/ai/localization-eval-montage.jpg`](../assets/ai/localization-eval-montage.jpg) | Localization evaluation cases across lighting, courts, and camera modes. |
 | [`assets/ai/trajectory-3d.png`](../assets/ai/trajectory-3d.png) | 3D ball trajectory visualization. |

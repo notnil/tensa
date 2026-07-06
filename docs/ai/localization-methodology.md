@@ -8,6 +8,8 @@ The localization system turns camera observations into a court pose: machine X,
 machine Y, and machine yaw. That pose lets the robot share one coordinate frame
 across ball tracking, player tracking, movement, and throw targeting.
 
+![Conceptual localization flow from camera observations to court pose](../../assets/ai/localization-methodology-diagram.svg)
+
 ## 1. Machine Localization
 
 The localization system determines the machine's position (X, Y) and orientation (Yaw) in the court coordinate system.

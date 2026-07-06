@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/notnil/tensa/actions/workflows/ci.yml/badge.svg)](https://github.com/notnil/tensa/actions/workflows/ci.yml)
 
-[![Tensa autonomous tennis robot moving on court](assets/hero/tensa-hero-movement.gif)](assets/hero/tensa-hero-movement.mp4)
+[![Tensa autonomous tennis robot moving on court](assets/hero/tensa-hero-movement.webp)](assets/hero/tensa-hero-movement.mp4)
 
 Tensa is an autonomous tennis robot that moves around the court on its own using a mecanum drive base, localizes itself against tennis-court geometry, tracks balls and players with ZED stereo cameras, and drives a programmable throw system for repeatable shots from a compact mobile platform.
 
@@ -21,18 +21,30 @@ Tensa combines perception, localization, motion, and ball delivery into one cour
 
 ## System Overview
 
+Tensa is organized around a simple idea: every subsystem should agree on where
+things are on the tennis court. Camera detections begin as pixels, but the robot
+runtime needs meters, headings, trajectories, and targets.
+
 ```text
-ZED cameras + court geometry
+ZED stereo cameras
         |
         v
-Perception and localization
+Ball, player, and court perception
         |
         v
-Robot runtime and drill logic
+Court-space localization and 3D tracking
         |
         v
-Mecanum drive + ClearCore thrower firmware
+Robot runtime, drill logic, and targeting
+        |
+        v
+Mecanum movement + ClearCore thrower firmware
 ```
+
+The cameras provide the raw scene. The AI stack turns image observations into
+court-space state. The Go runtime consumes that state to decide where the robot
+should move, where it should aim, and what the throw system should do. The
+firmware owns the low-level motor details for repeatable ball delivery.
 
 The code is useful for understanding the architecture and implementation direction. Reproducing the full robot requires hardware, model weights, calibration data, and ZED recordings that are intentionally not included.
 
@@ -67,11 +79,39 @@ The code is useful for understanding the architecture and implementation directi
 
 ## AI System
 
-The perception work evolved toward a four-camera ZED setup. The most successful ball-tracking path used independent left/right 2D detections, epipolar matching, direct stereo triangulation, and then transformation into court coordinates. Localization projected camera observations onto a court model so the robot could estimate its X/Y position and heading before moving or aiming.
+The perception work evolved toward a four-camera ZED setup. Each camera gives a
+stereo pair, so the robot can use left/right image geometry instead of treating
+the scene as a single flat video feed.
 
-The major lesson was that SDK depth maps worked well for surfaces and people but were unreliable for tennis balls: the ball is small, textureless, fast, and often blurred. Direct stereo geometry produced much more stable depth and cleaner bounce locations.
+The central AI tasks were:
+
+- localize the robot against known tennis-court geometry,
+- detect tennis balls in stereo image pairs,
+- triangulate 3D ball positions from disparity,
+- associate noisy detections into flight trajectories,
+- track players and court context for drill logic,
+- feed the runtime with court-space state instead of pixels.
+
+![Conceptual localization flow from camera observations to court pose](assets/ai/localization-methodology-diagram.svg)
+
+### Localization
+
+Localization gives the robot its own court pose: X position, Y position, and
+heading. The solver combines known court geometry, camera intrinsics, camera
+extrinsics, and observed court keypoints. Once the robot has a pose estimate,
+ball detections, player positions, navigation targets, and throw targets can all
+use the same coordinate frame.
 
 ![Camera views projected into a court-coordinate localization estimate](assets/ai/localization-camera-to-court.jpg)
+
+### Ball Tracking
+
+The most successful ball-tracking path used independent left/right 2D
+detections, epipolar matching, direct stereo triangulation, and transformation
+into court coordinates. The major lesson was that SDK depth maps worked well for
+surfaces and people but were unreliable for tennis balls: the ball is small,
+textureless, fast, and often blurred. Direct stereo geometry produced much more
+stable depth and cleaner bounce locations.
 
 ![3D ball trajectory visualizer](assets/ai/trajectory-3d.png)
 
@@ -87,7 +127,24 @@ More detail:
 
 ## Hardware and Firmware
 
-Tensa's hardware direction combined a Jetson compute stack, ZED cameras, a ClearCore throw controller, mecanum drive modules, a compact dual-wheel throw system, and a composite shell/chassis concept.
+Tensa's hardware direction combined a Jetson compute stack, ZED cameras, a
+ClearCore throw controller, mecanum drive modules, a compact dual-wheel throw
+system, and a composite shell/chassis concept.
+
+The hardware split mirrors the software split:
+
+- Jetson-class compute runs perception, runtime coordination, and debug tools.
+- ZED cameras provide stereo views for court localization and 3D ball tracking.
+- A mecanum drive base lets the robot translate and rotate independently.
+- ClearCore firmware controls the throw wheels, angle axis, dispenser, and load
+  sensor.
+- The mechanical package keeps cameras high enough for court coverage while
+  preserving room for the hopper, thrower, batteries, and electronics.
+
+The mecanum base matters because the robot can strafe into position without
+turning its camera and thrower package away from the court. The tradeoff is that
+localization errors become visible quickly, so movement and targeting depend on
+stable court-frame pose estimates.
 
 ![Throw system prototype](assets/hardware/throw-system.jpg)
 
