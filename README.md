@@ -34,6 +34,14 @@ This is an archived portfolio snapshot, not an actively maintained product. The 
 └── docs/           # Architecture and project notes
 ```
 
+## Suggested Reading Path
+
+- Start with [Architecture notes](docs/architecture.md) for the system split.
+- Read [Ball tracking methodology](docs/ai/ball-tracking-methodology.md) for the stereo geometry and physics tracker.
+- Read [Localization methodology](docs/ai/localization-methodology.md) for court-frame pose estimation.
+- Browse [Robot control](robot/README.md) for the Go runtime and hardware boundaries.
+- Browse [Firmware](firmware/README.md) and [Hardware notes](docs/hardware.md) for the thrower, drive base, and packaging work.
+
 ## AI System
 
 The perception work evolved toward a four-camera ZED setup. The most successful ball-tracking path used independent left/right 2D detections, epipolar matching, direct stereo triangulation, and then transformation into court coordinates.
@@ -49,6 +57,7 @@ The major lesson was that SDK depth maps worked well for surfaces and people but
 More detail:
 
 - [AI overview](ai/README.md)
+- [Training code notes](ai/training/README.md)
 - [Ball tracking methodology](docs/ai/ball-tracking-methodology.md)
 - [Localization methodology](docs/ai/localization-methodology.md)
 - [Architecture notes](docs/architecture.md)
@@ -81,6 +90,13 @@ make test-python
 The Go code builds without ZED hardware by using stub implementations. ZED support requires the Stereolabs SDK and the `zed_sdk` build tag.
 
 GitHub Actions runs the same checks on `main` and pull requests.
+
+Hardware/native checks are opt-in:
+
+```bash
+make test-go-native   # includes native packages such as ZED/ONNX runtime
+make test-go-hardware # includes CAN, BLE, speaker, and robot bench tests
+```
 
 ## What Is Not Included
 

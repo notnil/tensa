@@ -14,9 +14,21 @@ The production deployment files from the original private repo were intentionall
 
 ## Build
 
+From the repository root, run the portable public checks:
+
+```bash
+make test-go
+```
+
+That target skips the native zero-copy ZED/ONNX runtime package and hardware
+integration tests that require a robot, CAN bus, BLE adapter, speakers, or GPU
+camera SDKs.
+
+For a full local hardware bench run on a configured robot:
+
 ```bash
 cd robot
-go test ./...
+go test -tags=hardware ./...
 go build ./cmd/tensactl
 ```
 
@@ -26,3 +38,8 @@ ZED hardware support requires the Stereolabs SDK and the `zed_sdk` build tag:
 cd robot
 go build -tags=zed_sdk ./cmd/tensactl
 ```
+
+The experimental zero-copy `pkg/ai/zrt` runtime also requires ONNX Runtime,
+CUDA, and the ZED C API libraries. It is documented in
+`pkg/ai/zrt/README.md` and intentionally excluded from the default public CI
+target.
