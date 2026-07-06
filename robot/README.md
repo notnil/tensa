@@ -14,6 +14,8 @@ packages can be tested with mocks when a robot is not attached.
 - `pkg/tennis`: court geometry helpers used by navigation and drill targeting.
 - `pkg/pubsubx` and `pkg/metrics`: lightweight stream plumbing used between perception, control, and UI layers.
 
+For a more detailed runtime map, see [Robot runtime](../docs/robot-runtime.md).
+
 The production deployment files from the original private repo were intentionally omitted or replaced. They contained machine-specific network settings, internal registry paths, and developer workstation assumptions that are not useful in a public engineering repo.
 
 ## Runtime Responsibilities

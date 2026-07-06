@@ -2,9 +2,9 @@
 
 [![CI](https://github.com/notnil/tensa/actions/workflows/ci.yml/badge.svg)](https://github.com/notnil/tensa/actions/workflows/ci.yml)
 
-![Tensa autonomous tennis robot on court](assets/hero/tensa-court-robot.jpg)
+<video src="assets/hero/tensa-hero-movement.mp4" controls muted loop playsinline poster="assets/hero/tensa-court-robot.jpg" width="100%"></video>
 
-Tensa is an autonomous tennis robot that moves around the court on a mecanum drive base, localizes itself against tennis-court geometry, tracks balls and players with ZED stereo cameras, and drives a programmable throw system for repeatable shots from a compact mobile platform.
+Tensa is an autonomous tennis robot that moves around the court on its own using a mecanum drive base, localizes itself against tennis-court geometry, tracks balls and players with ZED stereo cameras, and drives a programmable throw system for repeatable shots from a compact mobile platform.
 
 This repo is a curated engineering snapshot of the AI, robot-control, firmware, and hardware work.
 
@@ -54,7 +54,7 @@ The code is useful for understanding the architecture and implementation directi
 | `robot/` | Go runtime for hardware control, drill logic, telemetry, camera interfaces, and court geometry helpers. |
 | `firmware/` | ClearCore firmware and motor parameter/configuration snapshots for the throw system. |
 | `hardware/` | Hardware notes and visual references for the mobile robot, drive base, thrower, and camera packaging. |
-| `docs/` | Architecture, ball-tracking, localization, and hardware methodology notes. |
+| `docs/` | Architecture, robot runtime, ball-tracking, localization, and hardware methodology notes. |
 | `assets/` | Selected AI, localization, and hardware visuals. |
 
 ## Suggested Reading Path
@@ -62,7 +62,7 @@ The code is useful for understanding the architecture and implementation directi
 1. Start with the [documentation index](docs/README.md) and [Architecture notes](docs/architecture.md) for the system split.
 2. Read [Ball tracking methodology](docs/ai/ball-tracking-methodology.md) for stereo geometry and the physics tracker.
 3. Read [Localization methodology](docs/ai/localization-methodology.md) for court-frame pose estimation.
-4. Browse [Robot control](robot/README.md) for the Go runtime and hardware boundaries.
+4. Read [Robot runtime](docs/robot-runtime.md) for the Go control loop and hardware abstractions.
 5. Browse [Firmware](firmware/README.md) and [Hardware notes](docs/hardware.md) for the thrower, drive base, and packaging work.
 
 ## AI System
@@ -136,7 +136,7 @@ Not included:
 
 - Raw datasets, SVO recordings, training runs, and cloud buckets.
 - Large model checkpoints, TensorRT engines, and private calibration datasets.
-- Deployment credentials, machine-specific configs, and internal service details.
+- Private deployment details, machine-specific setup, and internal service wiring.
 
 ## License
 

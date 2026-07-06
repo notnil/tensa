@@ -9,6 +9,20 @@ targeting could share the same geometry.
 Camera frames -> Court-space perception -> Drill/runtime decisions -> Hardware commands
 ```
 
+## Design Principles
+
+- Keep pixels at the edge. Perception can start in image coordinates, but shared
+  robot decisions should happen in meters.
+- Treat the court as the common reference frame. Ball tracking, player tracking,
+  localization, drive commands, and throw targeting all become easier to combine
+  when they agree on the origin and axes.
+- Keep hardware boundaries explicit. ZED cameras, mecanum wheels, controller
+  input, and the ClearCore thrower each have small Go interfaces so runtime code
+  can be tested without a full robot attached.
+- Separate exploratory AI work from robot orchestration. Python carried the
+  training/evaluation loop; Go carried the runtime integration and hardware
+  coordination loop.
+
 ## Data Flow
 
 1. ZED cameras capture synchronized stereo views.
@@ -60,6 +74,9 @@ The Go runtime was responsible for hardware coordination:
 - logs and telemetry streams.
 
 The runtime code is in `robot/`.
+
+See [Robot runtime](robot-runtime.md) for the control loop, package map, and
+test boundary in more detail.
 
 ## 4. Firmware and Low-Level Motion
 

@@ -32,4 +32,4 @@ LOAD
 
 `LOAD` returns `OK 1` when a ball is present and `OK 0` otherwise. See `robot/pkg/hware/thrower/protocol.md` for the matching Go-side client protocol.
 
-Network addresses, Wi-Fi credentials, bench scripts, generated vendor trees, and archived experiments are not part of this public tree.
+Robot-specific network settings, bench scripts, generated vendor trees, and archived experiments are not part of this public tree.

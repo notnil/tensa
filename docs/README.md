@@ -9,9 +9,21 @@ package-level API details.
 | Guide | Focus |
 |-------|-------|
 | [Architecture](architecture.md) | End-to-end system flow from cameras to court-space perception to hardware commands. |
+| [Robot runtime](robot-runtime.md) | Go control process, state model, hardware interfaces, and test boundaries. |
 | [Hardware](hardware.md) | Compute, sensors, mecanum drive, thrower, mechanical packaging, and firmware boundaries. |
 | [Ball tracking](ai/ball-tracking-methodology.md) | Stereo detection, triangulation, filtering, trajectory association, and physics refinement. |
 | [Localization](ai/localization-methodology.md) | Machine pose estimation from court geometry, camera calibration, and labeling/evaluation views. |
+
+## Visual Assets
+
+| Asset | What it shows |
+|-------|---------------|
+| [`assets/hero/tensa-hero-movement.mp4`](../assets/hero/tensa-hero-movement.mp4) | The robot moving on court; used as the README hero. |
+| [`assets/ai/localization-camera-to-court.jpg`](../assets/ai/localization-camera-to-court.jpg) | Multi-camera localization inputs beside the solved court pose. |
+| [`assets/ai/localization-eval-montage.jpg`](../assets/ai/localization-eval-montage.jpg) | Localization evaluation cases across lighting, courts, and camera modes. |
+| [`assets/ai/trajectory-3d.png`](../assets/ai/trajectory-3d.png) | 3D ball trajectory visualization. |
+| [`assets/ai/yolo-ball-detection-demo.mp4`](../assets/ai/yolo-ball-detection-demo.mp4) | Detector output on tennis-ball footage. |
+| [`assets/hardware/throw-system-test.mp4`](../assets/hardware/throw-system-test.mp4) | Independent thrower consistency test. |
 
 ## Code Entrypoints
 

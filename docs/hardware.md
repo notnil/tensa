@@ -38,6 +38,11 @@ The thrower was treated as its own control surface: the robot runtime could ask
 for a speed and angle, while the ClearCore firmware owned the details of motor
 state, load sensing, and safety recovery.
 
+Early bench testing kept the thrower separated from the drive base on purpose.
+That made it possible to tune wheel RPM, verify repeatability, and debug motor
+driver parameters without also debugging navigation, camera localization, or
+battery/power behavior.
+
 ## Mechanical Packaging
 
 The hardware design explored:

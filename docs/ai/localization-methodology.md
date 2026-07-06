@@ -103,6 +103,17 @@ Given N≥2 correspondences between clicked image points and known court keypoin
 The solver reduces localization to a small optimization problem: find the court
 position and yaw that best align observed camera rays with known court geometry.
 
+### Model-Based Localizer
+
+The project also explored learned localization from camera images. One
+development snapshot for a short-height camera configuration reported roughly
+0.20m mean 2D position error and roughly 2.3 degrees mean rotation error on a
+small evaluation set before later simulated and labeled-data retraining. Those
+numbers are best read as a development checkpoint, not a final benchmark, but
+they were good enough to guide the rest of the runtime design: localization
+needed to be expressed in meters and degrees with explicit uncertainty, not just
+as a visual overlay.
+
 ### Constraints for Robustness
 
 To handle noisy depth data:
