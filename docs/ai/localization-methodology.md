@@ -16,6 +16,8 @@ The localization system determines the machine's position (X, Y) and orientation
 
 ![Camera views projected into a court-coordinate localization estimate](../../assets/ai/localization-camera-to-court.jpg)
 
+[Localization demo video](../../assets/ai/localization-demo.mp4)
+
 ### Coordinate Systems
 
 Three coordinate frames are involved:

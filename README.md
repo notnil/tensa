@@ -104,6 +104,8 @@ use the same coordinate frame.
 
 ![Camera views projected into a court-coordinate localization estimate](assets/ai/localization-camera-to-court.jpg)
 
+[Localization demo video](assets/ai/localization-demo.mp4)
+
 ### Ball Tracking
 
 The most successful ball-tracking path used independent left/right 2D
@@ -145,6 +147,8 @@ The mecanum base matters because the robot can strafe into position without
 turning its camera and thrower package away from the court. The tradeoff is that
 localization errors become visible quickly, so movement and targeting depend on
 stable court-frame pose estimates.
+
+[Court movement demo video](assets/robot/court-movement-demo.mp4)
 
 ![Throw system prototype](assets/hardware/throw-system.jpg)
 
