@@ -46,11 +46,11 @@ The code is useful for understanding the architecture and implementation directi
 
 ## AI System
 
-The perception work evolved toward a four-camera ZED setup. The most successful ball-tracking path used independent left/right 2D detections, epipolar matching, direct stereo triangulation, and then transformation into court coordinates.
+The perception work evolved toward a four-camera ZED setup. The most successful ball-tracking path used independent left/right 2D detections, epipolar matching, direct stereo triangulation, and then transformation into court coordinates. Localization projected camera observations onto a court model so the robot could estimate its X/Y position and heading before moving or aiming.
 
 The major lesson was that SDK depth maps worked well for surfaces and people but were unreliable for tennis balls: the ball is small, textureless, fast, and often blurred. Direct stereo geometry produced much more stable depth and cleaner bounce locations.
 
-![Localization scatter plot with covariance ellipses](assets/ai/localization-scatter.png)
+![Camera views projected into a court-coordinate localization estimate](assets/ai/localization-camera-to-court.jpg)
 
 ![3D ball trajectory visualizer](assets/ai/trajectory-3d.png)
 

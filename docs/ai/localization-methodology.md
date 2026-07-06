@@ -6,6 +6,8 @@ This document describes the approach for determining machine position on a tenni
 
 The localization system determines the machine's position (X, Y) and orientation (Yaw) in the court coordinate system.
 
+![Camera views projected into a court-coordinate localization estimate](../../assets/ai/localization-camera-to-court.jpg)
+
 ### Coordinate Systems
 
 Three coordinate frames are involved:
@@ -99,7 +101,13 @@ To handle noisy depth data:
 1.  **Fixed Height**: The machine center height is locked to a known value (measured manually). This removes one degree of freedom.
 2.  **Upright Assumption**: The machine is assumed level with the court (no roll or pitch). This reduces the problem to solving only for yaw and X/Y position.
 
-## 2. Labeling Workflow
+## 2. Evaluation Views
+
+The localization tooling rendered multi-camera snapshots alongside the solved court pose so failures could be reviewed visually. The montage below shows examples across indoor, outdoor, RGB, infrared, and segmentation-style views, with the estimated pose printed above each panel as X/Y court position and rotation.
+
+![Localization evaluation montage across multiple courts and camera views](../../assets/ai/localization-eval-montage.jpg)
+
+## 3. Labeling Workflow
 
 The labeling process uses a visual interface for high-accuracy ground truth generation:
 
@@ -109,7 +117,7 @@ The labeling process uses a visual interface for high-accuracy ground truth gene
 4.  **Pose Computation**: After two or more correspondences, the solver computes machine pose.
 5.  **Verification**: A verification error (RMSE of point reprojection) is displayed to validate label quality.
 
-## 3. Output Data Format
+## 4. Output Data Format
 
 Labels are stored with the following fields per frame:
 
