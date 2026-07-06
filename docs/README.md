@@ -27,6 +27,7 @@ package-level API details.
 | [`assets/ai/trajectory-3d.png`](../assets/ai/trajectory-3d.png) | 3D ball trajectory visualization. |
 | [`assets/ai/yolo-ball-detection-demo.mp4`](../assets/ai/yolo-ball-detection-demo.mp4) | Detector output on tennis-ball footage. |
 | [`assets/robot/court-movement-demo.mp4`](../assets/robot/court-movement-demo.mp4) | Indoor court movement demo showing the prototype traversing laterally. |
+| [`assets/app/mobile-app-screens.png`](../assets/app/mobile-app-screens.png) | iOS app screens for Social, Skills, Drills, and Performance. |
 | [`assets/hardware/throw-system-test.mp4`](../assets/hardware/throw-system-test.mp4) | Independent thrower consistency test. |
 
 ## Code Entrypoints

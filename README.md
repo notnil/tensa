@@ -67,7 +67,7 @@ The code is useful for understanding the architecture and implementation directi
 | `firmware/` | ClearCore firmware and motor parameter/configuration snapshots for the throw system. |
 | `hardware/` | Hardware notes and visual references for the mobile robot, drive base, thrower, and camera packaging. |
 | `docs/` | Architecture, robot runtime, ball-tracking, localization, and hardware methodology notes. |
-| `assets/` | Selected AI, localization, and hardware visuals. |
+| `assets/` | Selected AI, localization, hardware, and app visuals. |
 
 ## Suggested Reading Path
 
@@ -163,6 +163,29 @@ More detail:
 - [Firmware overview](firmware/README.md)
 - [Hardware notes](docs/hardware.md)
 - [Thrower protocol](robot/pkg/hware/thrower/protocol.md)
+
+## iOS App
+
+The companion iOS app turned the robot stack into a player-facing training
+experience. It organized autonomous drills, skill progressions, weekly
+challenges, leaderboards, and post-session performance review around the same
+court-space data used by the robot runtime.
+
+![Tensa iOS app screens for Social, Skills, Drills, and Performance](assets/app/mobile-app-screens.png)
+
+The app covered four major workflows:
+
+- Social challenges and leaderboard views for weekly competitive drills.
+- Skill cards and drill libraries for browsing practice content by technique.
+- Drill launch and playback flows that connected mobile UI actions to the
+  robot's autonomous movement and ball-feed routines.
+- Performance summaries with Tensa score, shot statistics, player movement,
+  court activity, and in/out placement maps.
+
+The iOS control path used the robot BLE interface for movement, rotation,
+stopping, throw setup, load/throw commands, recording, drill start/stop, live
+location updates, and player-pose notifications. That made the app both a
+training product surface and a practical controller for court testing.
 
 ## Running Checks
 
