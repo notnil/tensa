@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/notnil/tensa/actions/workflows/ci.yml/badge.svg)](https://github.com/notnil/tensa/actions/workflows/ci.yml)
 
-<video src="assets/hero/tensa-hero-movement.mp4" controls muted loop playsinline poster="assets/hero/tensa-court-robot.jpg" width="100%"></video>
+[![Tensa autonomous tennis robot moving on court](assets/hero/tensa-hero-movement.gif)](assets/hero/tensa-hero-movement.mp4)
 
 Tensa is an autonomous tennis robot that moves around the court on its own using a mecanum drive base, localizes itself against tennis-court geometry, tracks balls and players with ZED stereo cameras, and drives a programmable throw system for repeatable shots from a compact mobile platform.
 
