@@ -1,8 +1,14 @@
 # Tensa
 
+[![CI](https://github.com/notnil/tensa/actions/workflows/ci.yml/badge.svg)](https://github.com/notnil/tensa/actions/workflows/ci.yml)
+
 Tensa was an autonomous tennis ball machine startup project: a mobile robot that could localize itself on court, track balls and players, move with mecanum wheels, and throw repeatable shots from a compact hardware platform.
 
 The company stopped before launch, but this repo preserves the engineering work as a portfolio artifact. It is intentionally curated from several private repos. Old experiments, private deployment scripts, network credentials, large model weights, raw datasets, generated vendor trees, and machine-specific setup files were removed.
+
+## Status
+
+This is an archived portfolio snapshot, not an actively maintained product. The code is useful for understanding the architecture and implementation direction, but reproducing the full robot requires hardware, model weights, calibration data, and ZED recordings that are intentionally not included.
 
 ![Physics-refined ball trajectory from multi-camera ZED footage](assets/ai/stereo-triangulation.png)
 
@@ -73,6 +79,8 @@ make test-python
 ```
 
 The Go code builds without ZED hardware by using stub implementations. ZED support requires the Stereolabs SDK and the `zed_sdk` build tag.
+
+GitHub Actions runs the same checks on `main` and pull requests.
 
 ## What Is Not Included
 
