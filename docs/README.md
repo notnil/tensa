@@ -20,6 +20,10 @@ package-level API details.
 |-------|---------------|
 | [`assets/hero/tensa-hero-movement.webp`](../assets/hero/tensa-hero-movement.webp) | Animated README hero showing the robot moving on court. |
 | [`assets/hero/tensa-hero-movement.mp4`](../assets/hero/tensa-hero-movement.mp4) | Full MP4 version of the movement hero. |
+| [`assets/diagrams/robot-system-architecture.svg`](../assets/diagrams/robot-system-architecture.svg) | Robot architecture across sensing, perception, runtime, app, mobility, thrower, and telemetry subsystems. |
+| [`assets/diagrams/ai-perception-pipeline.svg`](../assets/diagrams/ai-perception-pipeline.svg) | Perception flow from ZED stereo frames to localization, triangulation, physics tracking, and runtime outputs. |
+| [`assets/diagrams/runtime-control-loop.svg`](../assets/diagrams/runtime-control-loop.svg) | Go runtime control loop from perception and controller streams to navigation and thrower commands. |
+| [`assets/diagrams/hardware-subsystems.svg`](../assets/diagrams/hardware-subsystems.svg) | Hardware and firmware boundaries across compute, cameras, drive base, thrower, power, and packaging. |
 | [`assets/ai/localization-methodology-diagram.svg`](../assets/ai/localization-methodology-diagram.svg) | Conceptual localization flow from camera observations to court pose. |
 | [`assets/ai/localization-demo.mp4`](../assets/ai/localization-demo.mp4) | Multi-camera localization demo with court pose overlay. |
 | [`assets/ai/localization-camera-to-court.jpg`](../assets/ai/localization-camera-to-court.jpg) | Multi-camera localization inputs beside the solved court pose. |

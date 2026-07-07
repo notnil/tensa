@@ -25,21 +25,7 @@ Tensa is organized around a simple idea: every subsystem should agree on where
 things are on the tennis court. Camera detections begin as pixels, but the robot
 runtime needs meters, headings, trajectories, and targets.
 
-```text
-ZED stereo cameras
-        |
-        v
-Ball, player, and court perception
-        |
-        v
-Court-space localization and 3D tracking
-        |
-        v
-Robot runtime, drill logic, and targeting
-        |
-        v
-Mecanum movement + ClearCore thrower firmware
-```
+![Tensa robot subsystem architecture](assets/diagrams/robot-system-architecture.svg)
 
 The cameras provide the raw scene. The AI stack turns image observations into
 court-space state. The Go runtime consumes that state to decide where the robot
@@ -92,6 +78,8 @@ The central AI tasks were:
 - track players and court context for drill logic,
 - feed the runtime with court-space state instead of pixels.
 
+![Tensa AI perception pipeline](assets/diagrams/ai-perception-pipeline.svg)
+
 ![Conceptual localization flow from camera observations to court pose](assets/ai/localization-methodology-diagram.svg)
 
 ### Localization
@@ -142,6 +130,8 @@ The hardware split mirrors the software split:
   sensor.
 - The mechanical package keeps cameras high enough for court coverage while
   preserving room for the hopper, thrower, batteries, and electronics.
+
+![Tensa hardware and firmware subsystem boundaries](assets/diagrams/hardware-subsystems.svg)
 
 The mecanum base matters because the robot can strafe into position without
 turning its camera and thrower package away from the court. The tradeoff is that

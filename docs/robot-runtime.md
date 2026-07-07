@@ -4,23 +4,7 @@ The Go runtime is the integration layer between court-space perception and robot
 
 ## Runtime Shape
 
-```text
-Perception streams
-  |-- machine pose
-  |-- player positions
-  |-- ball tracks
-  v
-Runtime state and drill logic
-  |-- navigation targets
-  |-- throw commands
-  |-- controller overrides
-  v
-Hardware interfaces
-  |-- mecanum wheels
-  |-- ClearCore thrower
-  |-- ZED cameras
-  |-- Jetson stats
-```
+![Tensa runtime control loop](../assets/diagrams/runtime-control-loop.svg)
 
 The runtime does not try to own every robotics concern directly. Its job is to keep the current court state coherent, decide what the robot should do next, and route commands to the subsystem that owns the low-level details.
 

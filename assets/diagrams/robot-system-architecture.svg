@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc" viewBox="0 0 1500 920">
+  <title id="title">Tensa robot subsystem architecture</title>
+  <desc id="desc">Subsystem architecture for the Tensa robot, showing sensing, AI perception, runtime orchestration, mobility, thrower firmware, iOS app, and telemetry.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f7faf8; }
+      .panel { fill: #ffffff; stroke: #cdd8d2; stroke-width: 2; }
+      .panel2 { fill: #f0f7f4; stroke: #79a695; stroke-width: 2; }
+      .panel3 { fill: #eef5ff; stroke: #6d93c8; stroke-width: 2; }
+      .panel4 { fill: #fff7e8; stroke: #d6a24f; stroke-width: 2; }
+      .panel5 { fill: #f7efff; stroke: #9b7ac0; stroke-width: 2; }
+      .title { fill: #1d2b25; font-size: 34px; font-weight: 700; }
+      .section { fill: #20332b; font-size: 24px; font-weight: 700; }
+      .label { fill: #263b33; font-size: 18px; font-weight: 700; }
+      .small { fill: #40584e; font-size: 15px; }
+      .tiny { fill: #40584e; font-size: 13px; }
+      .arrow { stroke: #37564a; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .arrow2 { stroke: #6d93c8; stroke-width: 3; fill: none; marker-end: url(#bluehead); }
+      .feedback { stroke: #9b7ac0; stroke-width: 3; stroke-dasharray: 10 8; fill: none; marker-end: url(#purplehead); }
+      .bus { stroke: #263b33; stroke-width: 5; fill: none; }
+      .chip { fill: #1f6f88; }
+      .court { fill: #2f8a50; stroke: #1d5e34; stroke-width: 3; }
+      .court-line { stroke: #ffffff; stroke-width: 4; fill: none; stroke-linecap: round; }
+      .robot { fill: #ffffff; stroke: #263b33; stroke-width: 3; }
+      .wheel { fill: #384940; }
+    </style>
+    <marker id="arrowhead" markerWidth="12" markerHeight="9" refX="10" refY="4.5" orient="auto">
+      <path d="M 0 0 L 12 4.5 L 0 9 z" fill="#37564a"/>
+    </marker>
+    <marker id="bluehead" markerWidth="12" markerHeight="9" refX="10" refY="4.5" orient="auto">
+      <path d="M 0 0 L 12 4.5 L 0 9 z" fill="#6d93c8"/>
+    </marker>
+    <marker id="purplehead" markerWidth="12" markerHeight="9" refX="10" refY="4.5" orient="auto">
+      <path d="M 0 0 L 12 4.5 L 0 9 z" fill="#9b7ac0"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1500" height="920"/>
+  <text class="title" x="60" y="70">Robot Architecture</text>
+  <text class="small" x="60" y="104">Tensa is organized around court-space state: cameras and sensors produce observations, the AI stack estimates pose and tracks objects, and the runtime turns that state into movement and ball-delivery commands.</text>
+
+  <rect class="panel3" x="60" y="150" width="300" height="290" rx="18"/>
+  <text class="section" x="92" y="190">Sensing</text>
+  <rect class="panel" x="92" y="220" width="236" height="54" rx="12"/>
+  <text class="label" x="116" y="253">4x ZED stereo cameras</text>
+  <rect class="panel" x="92" y="292" width="236" height="54" rx="12"/>
+  <text class="label" x="116" y="325">IMU / yaw support</text>
+  <rect class="panel" x="92" y="364" width="236" height="54" rx="12"/>
+  <text class="label" x="116" y="397">Load sensor + status</text>
+
+  <rect class="panel2" x="440" y="125" width="355" height="345" rx="18"/>
+  <text class="section" x="472" y="165">AI and Perception</text>
+  <rect class="panel" x="472" y="195" width="285" height="56" rx="12"/>
+  <text class="label" x="496" y="227">Court localization</text>
+  <text class="tiny" x="496" y="246">X, Y, yaw in court coordinates</text>
+  <rect class="panel" x="472" y="268" width="285" height="56" rx="12"/>
+  <text class="label" x="496" y="300">Ball detection + stereo</text>
+  <text class="tiny" x="496" y="319">2D detections to 3D trajectories</text>
+  <rect class="panel" x="472" y="341" width="285" height="56" rx="12"/>
+  <text class="label" x="496" y="373">Player and court context</text>
+  <text class="tiny" x="496" y="392">positions, drills, target zones</text>
+  <rect class="panel" x="472" y="414" width="285" height="36" rx="10"/>
+  <text class="tiny" x="496" y="437">Python training, evaluation, and debug tooling</text>
+
+  <rect class="panel" x="875" y="125" width="330" height="345" rx="18"/>
+  <text class="section" x="907" y="165">Go Robot Runtime</text>
+  <rect class="panel2" x="907" y="198" width="266" height="52" rx="12"/>
+  <text class="label" x="930" y="230">State fusion</text>
+  <rect class="panel2" x="907" y="267" width="266" height="52" rx="12"/>
+  <text class="label" x="930" y="299">Drill logic and autonomy</text>
+  <rect class="panel2" x="907" y="336" width="266" height="52" rx="12"/>
+  <text class="label" x="930" y="368">Navigation + targeting</text>
+  <rect class="panel2" x="907" y="405" width="266" height="42" rx="12"/>
+  <text class="tiny" x="930" y="431">Mocks, stubs, logs, and metrics</text>
+
+  <rect class="panel4" x="1280" y="150" width="160" height="290" rx="18"/>
+  <text class="section" x="1310" y="190">App</text>
+  <text class="small" x="1310" y="225">Drills</text>
+  <text class="small" x="1310" y="252">Skills</text>
+  <text class="small" x="1310" y="279">Scores</text>
+  <text class="small" x="1310" y="306">BLE control</text>
+  <text class="small" x="1310" y="333">Session review</text>
+
+  <rect class="panel" x="440" y="560" width="355" height="260" rx="18"/>
+  <text class="section" x="472" y="600">Mobility</text>
+  <text class="small" x="472" y="635">Mecanum drive base</text>
+  <text class="small" x="472" y="663">Holonomic movement</text>
+  <text class="small" x="472" y="691">Manual override path</text>
+  <text class="small" x="472" y="719">Court-relative navigation targets</text>
+  <g transform="translate(650 638) rotate(-18)">
+    <rect class="robot" x="-34" y="-54" width="68" height="108" rx="12"/>
+    <circle class="wheel" cx="-45" cy="-38" r="12"/>
+    <circle class="wheel" cx="45" cy="-38" r="12"/>
+    <circle class="wheel" cx="-45" cy="38" r="12"/>
+    <circle class="wheel" cx="45" cy="38" r="12"/>
+  </g>
+
+  <rect class="panel4" x="875" y="560" width="330" height="260" rx="18"/>
+  <text class="section" x="907" y="600">Throw System</text>
+  <text class="small" x="907" y="635">ClearCore TCP command server</text>
+  <text class="small" x="907" y="663">Top and bottom wheel RPM</text>
+  <text class="small" x="907" y="691">Angle axis homing and position</text>
+  <text class="small" x="907" y="719">Dispenser and load sensing</text>
+  <text class="small" x="907" y="747">Fault handling and recovery</text>
+
+  <rect class="panel5" x="60" y="560" width="300" height="260" rx="18"/>
+  <text class="section" x="92" y="600">Telemetry</text>
+  <text class="small" x="92" y="635">Ball tracks</text>
+  <text class="small" x="92" y="663">Robot pose</text>
+  <text class="small" x="92" y="691">Camera snapshots</text>
+  <text class="small" x="92" y="719">Runtime metrics</text>
+  <text class="small" x="92" y="747">Debug visualizers</text>
+
+  <rect class="panel3" x="1280" y="560" width="160" height="260" rx="18"/>
+  <text class="section" x="1306" y="600">Court</text>
+  <g transform="translate(1316 630)">
+    <rect class="court" x="0" y="0" width="88" height="150" rx="8"/>
+    <line class="court-line" x1="44" y1="0" x2="44" y2="150"/>
+    <line class="court-line" x1="0" y1="75" x2="88" y2="75"/>
+    <rect class="court-line" x="13" y="15" width="62" height="120"/>
+    <line class="court-line" x1="13" y1="45" x2="75" y2="45"/>
+    <line class="court-line" x1="13" y1="105" x2="75" y2="105"/>
+  </g>
+  <text class="tiny" x="1307" y="812">shared coordinate frame</text>
+
+  <path class="arrow" d="M 360 295 C 395 295, 405 295, 440 295"/>
+  <path class="arrow" d="M 795 295 C 830 295, 840 295, 875 295"/>
+  <path class="arrow" d="M 1205 275 C 1238 255, 1250 245, 1280 240"/>
+  <path class="feedback" d="M 1280 350 C 1235 405, 1220 438, 1205 418"/>
+  <path class="arrow" d="M 1038 470 L 1038 560"/>
+  <path class="arrow" d="M 875 650 C 840 650, 830 650, 795 650"/>
+  <path class="arrow" d="M 795 735 C 835 775, 850 775, 875 760"/>
+  <path class="arrow2" d="M 440 710 C 405 710, 395 710, 360 710"/>
+  <path class="arrow2" d="M 875 710 C 835 720, 810 725, 795 730"/>
+  <path class="feedback" d="M 1280 690 C 1240 690, 1235 690, 1205 690"/>
+  <path class="bus" d="M 618 500 L 1040 500"/>
+  <circle class="chip" cx="618" cy="500" r="7"/>
+  <circle class="chip" cx="1040" cy="500" r="7"/>
+  <text class="tiny" x="725" y="490">court-space state bus</text>
+</svg>

@@ -5,9 +5,7 @@ and low-level motion/firmware. The important design choice was to keep court
 understanding in a stable coordinate frame so perception, movement, and throw
 targeting could share the same geometry.
 
-```text
-Camera frames -> Court-space perception -> Drill/runtime decisions -> Hardware commands
-```
+![Tensa robot subsystem architecture](../assets/diagrams/robot-system-architecture.svg)
 
 ## Design Principles
 
@@ -24,6 +22,8 @@ Camera frames -> Court-space perception -> Drill/runtime decisions -> Hardware c
   coordination loop.
 
 ## Data Flow
+
+![Tensa AI perception pipeline](../assets/diagrams/ai-perception-pipeline.svg)
 
 1. ZED cameras capture synchronized stereo views.
 2. Perception code detects balls, players, and court features.

@@ -13,6 +13,8 @@ The compute stack had to support both real-time robotics code and GPU-heavy
 vision workloads. That drove the split between a Go runtime for orchestration
 and Python/CUDA-oriented tooling for perception experiments.
 
+![Tensa hardware and firmware subsystem boundaries](../assets/diagrams/hardware-subsystems.svg)
+
 ## Motion Platform
 
 The robot explored a mecanum drive base so it could translate and rotate independently on court. That made accurate localization and low-latency pose updates important: filtered rotation data could lag during target-practice style motion, so the runtime kept room for raw/low-latency rotation paths.
